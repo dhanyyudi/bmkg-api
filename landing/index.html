@@ -512,8 +512,8 @@
                   class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg"
                 >
                   <p
-                    x-text="selectedAlertInfo?.description?.substring(0, 150) + '...'"
-                    class="text-xs text-gray-700 dark:text-gray-300"
+                    x-html="highlightAreas(selectedAlertInfo?.description)"
+                    class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed"
                   ></p>
                   <p
                     x-text="'Published: ' + formatDate(selectedAlertInfo?.published_at)"
@@ -691,7 +691,7 @@
                       <!-- Description -->
                       <p
                         x-show="vizInfo.description"
-                        x-text="vizInfo.description?.substring(0, 140) + (vizInfo.description?.length > 140 ? '...' : '')"
+                        x-html="highlightAreas(vizInfo.description)"
                         class="text-xs text-gray-500 dark:text-gray-400 mt-3 leading-relaxed"
                       ></p>
 
@@ -1469,6 +1469,21 @@ rings.forEach((ring, i) =&gt; {
               hour: "2-digit",
               minute: "2-digit",
             });
+          },
+
+          // Helper: highlight affected area names in description
+          highlightAreas(desc) {
+            if (!desc) return '';
+            // Match "khususnya di [area list]." and bold the area names
+            return desc.replace(
+              /(khususnya di\s)([^.]+)(\.|$)/i,
+              (match, prefix, areas, dot) => {
+                const highlighted = areas.split(',').map(a =>
+                  `<span class="font-semibold text-amber-600 dark:text-amber-400">${a.trim()}</span>`
+                ).join(', ');
+                return `${prefix}${highlighted}${dot}`;
+              }
+            );
           },
 
           async fetchAlertCodes() {
