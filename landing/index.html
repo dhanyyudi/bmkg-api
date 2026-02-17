@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }" x-bind:class="{ 'dark': darkMode }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMKG API - Indonesian Weather & Earthquake Data</title>
+    <meta name="description" content="Free REST API for Indonesian weather forecasts, earthquake data, and region lookup from BMKG">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Prism.js for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        .gradient-text {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #eff6ff 0%, #f3e8ff 100%);
+        }
+        .dark .gradient-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        }
+        .code-block {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="activity" class="w-6 h-6 text-primary-600"></i>
+                    <span class="font-bold text-xl">BMKG API</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="/docs" class="hidden sm:block text-gray-600 dark:text-gray-400 hover:text-primary-600">Docs</a>
+                    <a href="https://github.com/dhanypedia/bmkg-api" class="hidden sm:block text-gray-600 dark:text-gray-400 hover:text-primary-600">GitHub</a>
+                    <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" 
+                            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        <i x-show="!darkMode" data-lucide="moon" class="w-5 h-5"></i>
+                        <i x-show="darkMode" data-lucide="sun" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg py-20 sm:py-32">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm font-medium mb-6">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span id="api-status">Checking API...</span>
+            </div>
+            
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
+                <span class="gradient-text">BMKG API</span>
+            </h1>
+            <p class="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
+                Free REST API for Indonesian weather forecasts, earthquake data, and region lookup. 
+                Powered by BMKG open data.
+            </p>
+            
+            <!-- Quick Code Example -->
+            <div class="bg-gray-900 rounded-xl p-4 sm:p-6 max-w-2xl mx-auto mb-8 text-left shadow-2xl">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex gap-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                    <button onclick="copyCode('hero-code')" class="text-gray-400 hover:text-white text-sm flex items-center gap-1">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                        <span id="copy-hero">Copy</span>
+                    </button>
+                </div>
+                <pre class="overflow-x-auto"><code id="hero-code" class="language-bash text-sm">curl https://bmkg-api.is-a.dev/v1/earthquake/latest</code></pre>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/docs" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors">
+                    <i data-lucide="book-open" class="w-5 h-5"></i>
+                    API Documentation
+                </a>
+                <a href="#explorer" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <i data-lucide="play" class="w-5 h-5"></i>
+                    Try It Now
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Cards -->
+    <section class="py-16 sm:py-24 bg-white dark:bg-gray-900">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">API Features</h2>
+            
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Earthquake -->
+                <div class="p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-red-300 dark:hover:border-red-700 hover:shadow-lg transition-all group">
+                    <div class="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <i data-lucide="activity" class="w-6 h-6 text-red-600"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">Earthquake</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        Real-time seismic data from BMKG's nationwide sensor network.
+                    </p>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 rounded">GET</span>
+                            <code class="text-gray-600 dark:text-gray-400">/earthquake/latest</code>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 rounded">GET</span>
+                            <code class="text-gray-600 dark:text-gray-400">/earthquake/recent</code>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 rounded">GET</span>
+                            <code class="text-gray-600 dark:text-gray-400">/earthquake/nearby</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weather -->
+                <div class="p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-sky-300 dark:hover:border-sky-700 hover:shadow-lg transition-all group">
+                    <div class="w-12 h-12 bg-sky-100 dark:bg-sky-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <i data-lucide="cloud-sun" class="w-6 h-6 text-sky-600"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">Weather</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        3-day weather forecasts for any location in Indonesia.
+                    </p>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 rounded">GET</span>
+                            <code class="text-gray-600 dark:text-gray-400">/weather/{adm4}</code>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 rounded">GET</span>
+                            <code class="text-gray-600 dark:text-gray-400">/weather/{adm4}/current</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nowcast -->
+                <div class="p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-lg transition-all group">
+                    <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <i data-lucide="cloud-lightning" class="w-6 h-6 text-amber-600"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">Nowcast</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        Real-time weather warnings and alerts (Peringatan Dini).
+                    </p>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 rounded">GET</span>
+                            <code class="text-gray-600 dark:text-gray-400">/nowcast</code>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 rounded">GET</span>
+                            <code class="text-gray-600 dark:text-gray-400">/nowcast/{province}</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wilayah -->
+                <div class="p-6 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-lg transition-all group">
+                    <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <i data-lucide="map-pin" class="w-6 h-6 text-emerald-600"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">Wilayah</h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        Indonesian region lookup: provinces, districts, villages.
+                    </p>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 rounded">GET</span>
+                            <code class="text-gray-600 dark:text-gray-400">/wilayah/provinces</code>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 rounded">GET</span>
+                            <code class="text-gray-600 dark:text-gray-400">/wilayah/search</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- API Explorer -->
+    <section id="explorer" class="py-16 sm:py-24 bg-gray-50 dark:bg-gray-800/50">
+        <div class="max-w-5xl mx-auto px-4" x-data="apiExplorer()">
+            <h2 class="text-3xl font-bold text-center mb-4">API Explorer</h2>
+            <p class="text-gray-600 dark:text-gray-400 text-center mb-8">Try the API directly from your browser</p>
+            
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+                <!-- Endpoint Selector -->
+                <div class="border-b border-gray-200 dark:border-gray-800 p-4">
+                    <label class="block text-sm font-medium mb-2">Select Endpoint</label>
+                    <select x-model="selectedEndpoint" @change="updateParams()" 
+                            class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        <option value="earthquake-latest">GET /v1/earthquake/latest</option>
+                        <option value="earthquake-recent">GET /v1/earthquake/recent</option>
+                        <option value="earthquake-felt">GET /v1/earthquake/felt</option>
+                        <option value="weather">GET /v1/weather/{adm4_code}</option>
+                        <option value="weather-current">GET /v1/weather/{adm4_code}/current</option>
+                        <option value="nowcast">GET /v1/nowcast</option>
+                        <option value="wilayah-provinces">GET /v1/wilayah/provinces</option>
+                        <option value="wilayah-search">GET /v1/wilayah/search</option>
+                    </select>
+                </div>
+                
+                <!-- Parameters -->
+                <div class="p-4 border-b border-gray-200 dark:border-gray-800" x-show="hasParams">
+                    <template x-if="selectedEndpoint === 'weather' || selectedEndpoint === 'weather-current'">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">ADM4 Code</label>
+                            <input x-model="params.adm4" type="text" placeholder="33.26.16.1001" 
+                                   class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800">
+                            <p class="text-xs text-gray-500 mt-1">Example: 33.26.16.1001 (Kadipaten, Pekalongan)</p>
+                        </div>
+                    </template>
+                    <template x-if="selectedEndpoint === 'wilayah-search'">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Search Query</label>
+                            <input x-model="params.query" type="text" placeholder="pekalongan" 
+                                   class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800">
+                        </div>
+                    </template>
+                </div>
+                
+                <!-- Execute -->
+                <div class="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+                    <div class="flex items-center gap-4">
+                        <code x-text="buildUrl()" class="flex-1 text-sm font-mono bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded overflow-x-auto"></code>
+                        <button @click="execute()" :disabled="loading"
+                                class="px-6 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg font-medium flex items-center gap-2">
+                            <i x-show="!loading" data-lucide="play" class="w-4 h-4"></i>
+                            <i x-show="loading" data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+                            <span x-text="loading ? 'Loading...' : 'Execute'"></span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Response -->
+                <div class="p-4" x-show="response">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium">Response</span>
+                        <span x-text="statusCode" :class="statusClass"></span>
+                    </div>
+                    <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm"><code x-text="JSON.stringify(response, null, 2)"></code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start -->
+    <section class="py-16 sm:py-24 bg-white dark:bg-gray-900">
+        <div class="max-w-4xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">Quick Start</h2>
+            
+            <div class="grid sm:grid-cols-3 gap-8 mb-12">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-xl font-bold text-primary-600">1</span>
+                    </div>
+                    <h3 class="font-semibold mb-2">Pick Endpoint</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Choose from earthquake, weather, nowcast, or wilayah</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-xl font-bold text-primary-600">2</span>
+                    </div>
+                    <h3 class="font-semibold mb-2">Make Request</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Simple HTTP GET request, no authentication required</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-xl font-bold text-primary-600">3</span>
+                    </div>
+                    <h3 class="font-semibold mb-2">Get JSON</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Clean, structured JSON response with attribution</p>
+                </div>
+            </div>
+            
+            <!-- Code Examples -->
+            <div class="bg-gray-900 rounded-xl overflow-hidden" x-data="{ activeTab: 'curl' }">
+                <div class="flex border-b border-gray-800">
+                    <button @click="activeTab = 'curl'" :class="activeTab === 'curl' ? 'bg-gray-800 text-white' : 'text-gray-400'" 
+                            class="px-4 py-3 text-sm font-medium transition-colors">cURL</button>
+                    <button @click="activeTab = 'js'" :class="activeTab === 'js' ? 'bg-gray-800 text-white' : 'text-gray-400'" 
+                            class="px-4 py-3 text-sm font-medium transition-colors">JavaScript</button>
+                    <button @click="activeTab = 'python'" :class="activeTab === 'python' ? 'bg-gray-800 text-white' : 'text-gray-400'" 
+                            class="px-4 py-3 text-sm font-medium transition-colors">Python</button>
+                </div>
+                <div class="p-4">
+                    <pre x-show="activeTab === 'curl'" class="language-bash"><code>curl https://bmkg-api.is-a.dev/v1/earthquake/latest</code></pre>
+                    <pre x-show="activeTab === 'js'" class="language-javascript"><code>fetch('https://bmkg-api.is-a.dev/v1/earthquake/latest')
+  .then(r => r.json())
+  .then(data => console.log(data));</code></pre>
+                    <pre x-show="activeTab === 'python'" class="language-python"><code>import requests
+
+response = requests.get(
+    'https://bmkg-api.is-a.dev/v1/earthquake/latest'
+)
+data = response.json()
+print(data)</code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Notice -->
+    <section class="py-16 sm:py-24 bg-gray-50 dark:bg-gray-800/50">
+        <div class="max-w-3xl mx-auto px-4 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full mb-6">
+                <i data-lucide="info" class="w-8 h-8 text-amber-600"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-4">Demo Instance</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">
+                This public demo has rate limits (30 requests/minute) for fair usage. 
+                For unlimited access and production use, please self-host your own instance.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="https://github.com/dhanypedia/bmkg-api#self-hosting" 
+                   class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors">
+                    <i data-lucide="server" class="w-5 h-5"></i>
+                    Self-Host Guide
+                </a>
+                <a href="https://vercel.com/new/clone?repository-url=https://github.com/dhanypedia/bmkg-api" 
+                   class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <i data-lucide="zap" class="w-5 h-5"></i>
+                    Deploy to Vercel
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Source -->
+    <section class="py-16 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <div class="inline-flex items-center gap-3 mb-4">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Logo_BMKG_%282010%29.png" 
+                     alt="BMKG Logo" 
+                     class="h-12 w-auto">
+                <span class="text-lg font-semibold">Data Source</span>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 mb-2">
+                All data provided by <a href="https://www.bmkg.go.id" target="_blank" class="text-primary-600 hover:underline font-medium">BMKG</a> 
+                (Badan Meteorologi, Klimatologi, dan Geofisika)
+            </p>
+            <p class="text-sm text-gray-500">
+                This API is not affiliated with BMKG. All data belongs to BMKG.
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 dark:bg-gray-800/50 py-8 border-t border-gray-200 dark:border-gray-800">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="activity" class="w-5 h-5 text-primary-600"></i>
+                    <span class="font-semibold">BMKG API</span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <a href="/docs" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600">Documentation</a>
+                    <a href="/redoc" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600">ReDoc</a>
+                    <a href="https://github.com/dhanypedia/bmkg-api" class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600">GitHub</a>
+                </div>
+                <div class="text-sm text-gray-500">
+                    Made with ❤️ by dhanypedia
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 text-center text-xs text-gray-500">
+                Licensed under MIT License
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Check API status
+        fetch('/health')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('api-status').textContent = 'API Online';
+            })
+            .catch(() => {
+                document.getElementById('api-status').textContent = 'API Offline';
+                document.querySelector('#api-status').parentElement.classList.remove('bg-green-100', 'text-green-700');
+                document.querySelector('#api-status').parentElement.classList.add('bg-red-100', 'text-red-700');
+            });
+        
+        // Copy code function
+        function copyCode(elementId) {
+            const code = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.getElementById('copy-hero');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy', 2000);
+            });
+        }
+        
+        // API Explorer Alpine component
+        function apiExplorer() {
+            return {
+                selectedEndpoint: 'earthquake-latest',
+                loading: false,
+                response: null,
+                statusCode: null,
+                statusClass: '',
+                params: {
+                    adm4: '33.26.16.1001',
+                    query: 'pekalongan'
+                },
+                get hasParams() {
+                    return ['weather', 'weather-current', 'wilayah-search'].includes(this.selectedEndpoint);
+                },
+                buildUrl() {
+                    const base = 'https://bmkg-api.is-a.dev/v1';
+                    switch(this.selectedEndpoint) {
+                        case 'earthquake-latest': return `${base}/earthquake/latest`;
+                        case 'earthquake-recent': return `${base}/earthquake/recent`;
+                        case 'earthquake-felt': return `${base}/earthquake/felt`;
+                        case 'weather': return `${base}/weather/${this.params.adm4 || '{adm4_code}'}`;
+                        case 'weather-current': return `${base}/weather/${this.params.adm4 || '{adm4_code}'}/current`;
+                        case 'nowcast': return `${base}/nowcast`;
+                        case 'wilayah-provinces': return `${base}/wilayah/provinces`;
+                        case 'wilayah-search': return `${base}/wilayah/search?q=${this.params.query || '{query}'}`;
+                        default: return base;
+                    }
+                },
+                async execute() {
+                    this.loading = true;
+                    this.response = null;
+                    try {
+                        const url = this.buildUrl().replace('https://bmkg-api.is-a.dev', '');
+                        const res = await fetch(url);
+                        this.statusCode = res.status;
+                        this.statusClass = res.ok ? 'px-2 py-1 bg-green-100 text-green-700 rounded text-xs' : 'px-2 py-1 bg-red-100 text-red-700 rounded text-xs';
+                        this.response = await res.json();
+                    } catch (err) {
+                        this.statusCode = 'Error';
+                        this.statusClass = 'px-2 py-1 bg-red-100 text-red-700 rounded text-xs';
+                        this.response = { error: err.message };
+                    }
+                    this.loading = false;
+                }
+            };
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+# Global owners
+defaults:
+* @dhanypedia
+
+# GitHub Actions workflows
+/.github/workflows/ @dhanypedia
+
+# Core application code
+/app/ @dhanypedia
+
+# Documentation
+*.md @dhanypedia
