@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/openapi.json",
+      "destination": "api/index.py"
+    },
+    {
+      "source": "/docs",
+      "destination": "api/index.py"
+    },
+    {
+      "source": "/redoc",
+      "destination": "api/index.py"
+    },
+    {
+      "source": "/v1/(.*)",
+      "destination": "api/index.py"
+    },
+    {
+      "source": "/static/(.*)",
+      "destination": "/landing/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "api/index.py"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/openapi.json",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    }
+  ]
+}

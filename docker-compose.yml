@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  bmkg-api-server:
+    container_name: bmkg-api-server
+    build: .
+    restart: unless-stopped
+    # NO ports exposed to host — accessed via NPM/Cloudflare Tunnel
+    environment:
+      - REDIS_URL=redis://bmkg-api-redis:6379
+      - RATE_LIMIT_ANONYMOUS=30/minute
+      - RATE_LIMIT_AUTHENTICATED=120/minute
+      - CACHE_TTL_NOWCAST=120
+      - CACHE_TTL_WEATHER=900
+      - CACHE_TTL_EARTHQUAKE_LATEST=60
+      - CACHE_TTL_EARTHQUAKE_LIST=300
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./data:/app/data
+      - ./landing:/app/landing
+    depends_on:
+      - bmkg-api-redis
+    networks:
+      - private_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  bmkg-api-redis:
+    image: redis:7-alpine
+    container_name: bmkg-api-redis
+    restart: unless-stopped
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - private_network
+
+networks:
+  private_network:
+    external: true
