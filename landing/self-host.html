@@ -152,30 +152,61 @@
             </div>
             <div class="p-6 space-y-6">
               <p class="text-gray-600 dark:text-gray-400">
-                The easiest way to get started. Docker handles all dependencies
-                and environment setup automatically.
+                The easiest way to get started. Pull a pre-built image from
+                GitHub Container Registry or build from source.
               </p>
 
               <div class="space-y-4">
-                <div class="bg-gray-900 rounded-xl overflow-hidden">
-                  <div
-                    class="flex items-center justify-between px-4 py-2 bg-gray-800"
-                  >
-                    <span class="text-sm text-gray-400">Terminal</span>
-                    <button
-                      onclick="copyToClipboard('docker-code')"
-                      class="text-gray-400 hover:text-white text-sm flex items-center gap-1"
+                <!-- GHCR Pull -->
+                <div>
+                  <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Option A: Pull pre-built image from GHCR
+                  </p>
+                  <div class="bg-gray-900 rounded-xl overflow-hidden">
+                    <div
+                      class="flex items-center justify-between px-4 py-2 bg-gray-800"
                     >
-                      <i data-lucide="copy" class="w-4 h-4"></i>
-                      <span id="copy-docker">Copy</span>
-                    </button>
+                      <span class="text-sm text-gray-400">Terminal</span>
+                      <button
+                        onclick="copyToClipboard('docker-ghcr-code')"
+                        class="text-gray-400 hover:text-white text-sm flex items-center gap-1"
+                      >
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                        <span id="copy-docker-ghcr">Copy</span>
+                      </button>
+                    </div>
+                    <pre
+                      class="p-4 overflow-x-auto"
+                    ><code id="docker-ghcr-code" class="language-bash">docker pull ghcr.io/dhanyyudi/bmkg-api:latest
+docker run -d -p 8099:8099 ghcr.io/dhanyyudi/bmkg-api:latest</code></pre>
                   </div>
-                  <pre
-                    class="p-4 overflow-x-auto"
-                  ><code id="docker-code" class="language-bash">git clone https://github.com/dhanyyudi/bmkg-api.git
+                </div>
+
+                <!-- Git Clone -->
+                <div>
+                  <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Option B: Build from source with Docker Compose
+                  </p>
+                  <div class="bg-gray-900 rounded-xl overflow-hidden">
+                    <div
+                      class="flex items-center justify-between px-4 py-2 bg-gray-800"
+                    >
+                      <span class="text-sm text-gray-400">Terminal</span>
+                      <button
+                        onclick="copyToClipboard('docker-code')"
+                        class="text-gray-400 hover:text-white text-sm flex items-center gap-1"
+                      >
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                        <span id="copy-docker">Copy</span>
+                      </button>
+                    </div>
+                    <pre
+                      class="p-4 overflow-x-auto"
+                    ><code id="docker-code" class="language-bash">git clone https://github.com/dhanyyudi/bmkg-api.git
 cd bmkg-api
 cp .env.example .env
 docker-compose up -d</code></pre>
+                  </div>
                 </div>
 
                 <div
