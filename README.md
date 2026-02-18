@@ -41,11 +41,11 @@ This is a **demo/public instance** with rate limits (30 requests/minute) to ensu
 # Latest earthquake
 curl https://bmkg-restapi.vercel.app/v1/earthquake/latest
 
-# Weather forecast for Tebet Timur, Jakarta
-curl https://bmkg-restapi.vercel.app/v1/weather/31.74.01.1001
+# Weather forecast for Pejaten Barat, Pasar Minggu, Jakarta Selatan
+curl https://bmkg-restapi.vercel.app/v1/weather/31.74.04.1006
 
 # Current weather
-curl https://bmkg-restapi.vercel.app/v1/weather/31.74.01.1001/current
+curl https://bmkg-restapi.vercel.app/v1/weather/31.74.04.1006/current
 
 # Active weather warnings
 curl https://bmkg-restapi.vercel.app/v1/nowcast
@@ -156,11 +156,11 @@ Ini adalah **instance demo/publik** dengan batasan rate limit (30 request/menit)
 # Gempa terbaru
 curl https://bmkg-restapi.vercel.app/v1/earthquake/latest
 
-# Prakiraan cuaca Tebet Timur, Jakarta
-curl https://bmkg-restapi.vercel.app/v1/weather/31.74.01.1001
+# Prakiraan cuaca Pejaten Barat, Pasar Minggu, Jakarta Selatan
+curl https://bmkg-restapi.vercel.app/v1/weather/31.74.04.1006
 
 # Cuaca saat ini
-curl https://bmkg-restapi.vercel.app/v1/weather/31.74.01.1001/current
+curl https://bmkg-restapi.vercel.app/v1/weather/31.74.04.1006/current
 
 # Peringatan cuaca aktif
 curl https://bmkg-restapi.vercel.app/v1/nowcast

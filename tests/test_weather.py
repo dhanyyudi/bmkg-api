@@ -343,14 +343,18 @@ class TestParseWeatherForecast:
     def test_parse_empty_data(self):
         """Parse empty data raises ValueError."""
         data = {
-            "lokasi": {
-                "adm4": "33.26.16.1001",
-                "lat": -6.89,
-                "lon": 109.67,
-            },
-            "data": []
+            "data": [
+                {
+                    "lokasi": {
+                        "adm4": "33.26.16.1001",
+                        "lat": -6.89,
+                        "lon": 109.67,
+                    },
+                    "cuaca": []
+                }
+            ]
         }
-        
+
         with pytest.raises(ValueError, match="No forecast entries found"):
             parse_weather_forecast(data)
 

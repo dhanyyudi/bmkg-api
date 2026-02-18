@@ -193,21 +193,26 @@ def parse_weather_forecast(data: dict) -> WeatherForecast:
     if "status" in data and data["status"] == "error":
         raise ValueError(data.get("message", "Unknown error from BMKG"))
     
-    # Parse location
-    location_data = data.get("lokasi", {})
+    # Parse location from data[0]["lokasi"]
+    data_list = data.get("data", [])
+    if not data_list:
+        raise ValueError("No data found in response")
+
+    location_data = data_list[0].get("lokasi", {})
     if not location_data:
         raise ValueError("No location data found in response")
-    
+
     location = parse_location(location_data)
-    
-    # Parse forecast entries
-    forecast_data = data.get("data", [])
+
+    # Parse forecast entries from nested cuaca structure:
+    # data["data"] -> each group -> group["cuaca"] -> array of arrays (per day)
     entries = []
-    
-    for entry_data in forecast_data:
-        entry = parse_forecast_entry(entry_data, location.timezone)
-        if entry:
-            entries.append(entry)
+    for group in data_list:
+        for day_entries in group.get("cuaca", []):
+            for entry_data in day_entries:
+                entry = parse_forecast_entry(entry_data, location.timezone)
+                if entry:
+                    entries.append(entry)
     
     if not entries:
         raise ValueError("No forecast entries found in response")
