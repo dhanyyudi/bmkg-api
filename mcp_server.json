@@ -1,0 +1,77 @@
+{
+  "name": "bmkg-api-mcp",
+  "version": "1.0.0",
+  "description": "MCP Server for BMKG Indonesia - Weather, Earthquake, and Region Data",
+  "publisher": "dhanyyudi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dhanyyudi/bmkg-api"
+  },
+  "entrypoint": {
+    "type": "stdio",
+    "command": "bmkg-api-mcp"
+  },
+  "tools": {
+    "count": 13,
+    "categories": [
+      {
+        "name": "Earthquake",
+        "description": "Earthquake data from BMKG Indonesia",
+        "tools": [
+          "get_latest_earthquake",
+          "get_recent_earthquakes",
+          "get_felt_earthquakes",
+          "get_nearby_earthquakes"
+        ]
+      },
+      {
+        "name": "Weather",
+        "description": "Weather forecasts for Indonesian locations",
+        "tools": [
+          "get_weather_forecast",
+          "get_current_weather"
+        ]
+      },
+      {
+        "name": "Nowcast",
+        "description": "Weather warnings and alerts",
+        "tools": [
+          "get_weather_warnings",
+          "check_location_warnings"
+        ]
+      },
+      {
+        "name": "Region",
+        "description": "Indonesian administrative region lookup",
+        "tools": [
+          "search_regions",
+          "get_provinces",
+          "get_districts",
+          "get_subdistricts",
+          "get_villages"
+        ]
+      }
+    ]
+  },
+  "installation": {
+    "package": "bmkg-api-mcp",
+    "command": "pipx install bmkg-api-mcp",
+    "requirements": ["python>=3.10"]
+  },
+  "keywords": [
+    "bmkg",
+    "weather",
+    "earthquake",
+    "indonesia",
+    "forecast",
+    "nowcast",
+    "region"
+  ],
+  "examples": [
+    "Gempa terbaru di Indonesia?",
+    "Cuaca 3 hari ke depan di Jakarta Selatan?",
+    "Cari kode wilayah untuk Tebet",
+    "Ada peringatan cuaca di Yogyakarta?"
+  ]
+}

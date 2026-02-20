@@ -34,6 +34,7 @@ This is a **demo/public instance** with rate limits (30 requests/minute) to ensu
 - 🔓 **No API Key Required** — Simple, anonymous access
 - 📈 **Rate Limit Headers** — `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` on every response
 - 🐳 **Docker & GHCR** — Automated multi-arch Docker images published to GitHub Container Registry
+- 🤖 **MCP Server** — Model Context Protocol for AI assistants (Claude, Cursor, etc.)
 
 ### Quick Start
 
@@ -87,6 +88,30 @@ curl https://bmkg-restapi.vercel.app/v1/wilayah/search?q=tebet
 | `GET /v1/wilayah/search?q={query}` | Search regions |
 
 **Full documentation:** [https://bmkg-restapi.vercel.app/docs](https://bmkg-restapi.vercel.app/docs)
+
+### 🤖 MCP Server (for AI Assistants)
+
+Use BMKG data directly in Claude Desktop, Cursor, VS Code, and other MCP-compatible AI assistants.
+
+```bash
+# Install MCP server
+pipx install bmkg-api-mcp
+```
+
+**Available Tools:**
+| Tool | Description |
+|------|-------------|
+| `get_latest_earthquake` | Latest earthquake data |
+| `get_weather_forecast` | 3-day weather forecast |
+| `get_weather_warnings` | Weather warnings (nowcast) |
+| `search_regions` | Search Indonesian regions |
+
+**Setup Guides:** See [MCP_SETUP.md](MCP_SETUP.md) for detailed configuration for Claude Desktop, Cursor, VS Code, and more.
+
+**Example prompts:**
+- "Gempa terbaru di Indonesia?"
+- "Cuaca 3 hari ke depan di Jakarta Selatan?"
+- "Cari kode wilayah untuk Tebet"
 
 ### Self-Hosting
 
@@ -149,6 +174,7 @@ Ini adalah **instance demo/publik** dengan batasan rate limit (30 request/menit)
 - 🔓 **Tanpa API Key** — Akses sederhana dan anonim
 - 📈 **Rate Limit Headers** — `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` di setiap response
 - 🐳 **Docker & GHCR** — Image Docker multi-arsitektur otomatis di GitHub Container Registry
+- 🤖 **MCP Server** — Model Context Protocol untuk AI assistants (Claude, Cursor, dll)
 
 ### Cepat Mulai
 
@@ -202,6 +228,30 @@ curl https://bmkg-restapi.vercel.app/v1/wilayah/search?q=wiradesa
 | `GET /v1/wilayah/search?q={query}` | Cari wilayah |
 
 **Dokumentasi lengkap:** [https://bmkg-restapi.vercel.app/docs](https://bmkg-restapi.vercel.app/docs)
+
+### 🤖 MCP Server (untuk AI Assistants)
+
+Gunakan data BMKG langsung di Claude Desktop, Cursor, VS Code, dan AI assistants lain yang kompatibel dengan MCP.
+
+```bash
+# Install MCP server
+pipx install bmkg-api-mcp
+```
+
+**Tools Tersedia:**
+| Tool | Deskripsi |
+|------|-----------|
+| `get_latest_earthquake` | Data gempa terbaru |
+| `get_weather_forecast` | Prakiraan cuaca 3 hari |
+| `get_weather_warnings` | Peringatan cuaca (nowcast) |
+| `search_regions` | Cari wilayah Indonesia |
+
+**Panduan Setup:** Lihat [MCP_SETUP.md](MCP_SETUP.md) untuk konfigurasi detail untuk Claude Desktop, Cursor, VS Code, dan lainnya.
+
+**Contoh prompt:**
+- "Gempa terbaru di Indonesia?"
+- "Cuaca 3 hari ke depan di Jakarta Selatan?"
+- "Cari kode wilayah untuk Tebet"
 
 ### Self-Hosting
 

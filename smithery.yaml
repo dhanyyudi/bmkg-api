@@ -1,0 +1,21 @@
+name: bmkg-api-mcp
+version: 1.0.0
+description: MCP Server for BMKG Indonesia - Weather, Earthquake, and Region Data
+
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties: {}
+  commandFunction: |
+    (config) => ({
+      command: "bmkg-api-mcp",
+      env: {}
+    })
+
+buildCommand: pip install -e .
+
+categories:
+  - weather
+  - location
+  - government

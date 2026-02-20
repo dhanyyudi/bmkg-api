@@ -1,8 +1,22 @@
 [project]
-name = "bmkg-api"
+name = "bmkg-api-mcp"
 version = "1.0.0"
-description = "BMKG API - Indonesian Weather & Earthquake Data"
+description = "MCP Server for BMKG Indonesia - Weather, Earthquake, and Region Data for AI Assistants"
 requires-python = ">=3.12"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "dhanypedia", email = "dhanyyudi@gmail.com"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+]
 dependencies = [
     "fastapi>=0.109.0",
     "uvicorn[standard]>=0.27.0",
@@ -12,6 +26,7 @@ dependencies = [
     "redis>=5.0",
     "slowapi>=0.1.9",
     "cachetools>=5.0",
+    "mcp>=1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -19,6 +34,20 @@ dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23.0",
 ]
+
+[project.scripts]
+bmkg-api-mcp = "mcp_server.server:main"
+
+[project.urls]
+Homepage = "https://github.com/dhanyyudi/bmkg-api"
+Documentation = "https://bmkg-restapi.vercel.app/docs"
+Repository = "https://github.com/dhanyyudi/bmkg-api"
+Issues = "https://github.com/dhanyyudi/bmkg-api/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*", "mcp_server*"]
+exclude = ["tests*", "landing*", "api*"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
