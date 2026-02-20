@@ -214,7 +214,7 @@ async def debug_ping() -> dict:
     return {
         "status": "ok",
         "server": "bmkg-api-mcp",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "timestamp": datetime.datetime.now().isoformat(),
         "tools_available": 14
     }
@@ -286,7 +286,7 @@ def main():
     parser.add_argument(
         "--version",
         action="version",
-        version="%(prog)s 1.0.1"
+        version="%(prog)s 1.0.2"
     )
     
     args = parser.parse_args()
@@ -296,7 +296,7 @@ def main():
     
     # Log startup info
     logger = logging.getLogger("mcp_server")
-    logger.info("Starting BMKG MCP Server v1.0.1"")
+    logger.info("Starting BMKG MCP Server v1.0.2")
     logger.info("Available tools: 13")
     logger.info("Transport: stdio")
     
