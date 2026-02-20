@@ -1,6 +1,7 @@
 # BMKG API
 
 [![Docker](https://github.com/dhanyyudi/bmkg-api/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/dhanyyudi/bmkg-api/actions/workflows/docker-publish.yml)
+[![PyPI](https://img.shields.io/pypi/v/bmkg-api-mcp.svg)](https://pypi.org/project/bmkg-api-mcp/)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -91,27 +92,87 @@ curl https://bmkg-restapi.vercel.app/v1/wilayah/search?q=tebet
 
 ### 🤖 MCP Server (for AI Assistants)
 
-Use BMKG data directly in Claude Desktop, Cursor, VS Code, and other MCP-compatible AI assistants.
+[![PyPI](https://img.shields.io/pypi/v/bmkg-api-mcp.svg)](https://pypi.org/project/bmkg-api-mcp/)
+
+Use BMKG data directly in **Claude Desktop**, **Cursor**, **VS Code**, **Windsurf**, **Zed**, and other MCP-compatible AI assistants.
+
+#### Installation
 
 ```bash
-# Install MCP server
+# Via pipx (recommended)
 pipx install bmkg-api-mcp
+
+# Via pip
+pip install bmkg-api-mcp
 ```
 
-**Available Tools:**
-| Tool | Description |
-|------|-------------|
-| `get_latest_earthquake` | Latest earthquake data |
-| `get_weather_forecast` | 3-day weather forecast |
-| `get_weather_warnings` | Weather warnings (nowcast) |
-| `search_regions` | Search Indonesian regions |
+#### Quick Setup
 
-**Setup Guides:** See [MCP_SETUP.md](MCP_SETUP.md) for detailed configuration for Claude Desktop, Cursor, VS Code, and more.
+**Claude Desktop:**
+```bash
+# Edit config file
+nano ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
 
-**Example prompts:**
-- "Gempa terbaru di Indonesia?"
-- "Cuaca 3 hari ke depan di Jakarta Selatan?"
-- "Cari kode wilayah untuk Tebet"
+Add this to your config:
+```json
+{
+  "mcpServers": {
+    "bmkg-api": {
+      "command": "bmkg-api-mcp"
+    }
+  }
+}
+```
+
+**Cursor:**
+1. Open Settings → Features → MCP Servers
+2. Click "Add New MCP Server"
+3. Name: `bmkg-api`, Type: `command`, Command: `bmkg-api-mcp`
+
+**VS Code (Cline/Roo Code):**
+```json
+{
+  "mcpServers": {
+    "bmkg-api": {
+      "command": "bmkg-api-mcp",
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
+```
+
+#### Available Tools (15)
+
+| Category | Tools |
+|----------|-------|
+| **🌍 Earthquake** | `get_latest_earthquake`, `get_recent_earthquakes`, `get_felt_earthquakes`, `get_nearby_earthquakes` |
+| **🌤️ Weather** | `get_weather_forecast`, `get_current_weather` |
+| **⚠️ Nowcast** | `get_weather_warnings`, `check_location_warnings` |
+| **📍 Region** | `search_regions`, `get_provinces`, `get_districts`, `get_subdistricts`, `get_villages` |
+| **🔧 Utility** | `get_cache_stats`, `debug_ping` |
+
+#### Example Prompts
+
+Try these natural language queries in your AI assistant:
+
+```
+"Gempa terbaru di Indonesia berapa magnitudenya?"
+"Cuaca 3 hari ke depan di Jakarta Selatan?"
+"Cari kode wilayah untuk Kelapa Gading"
+"Ada peringatan cuaca ekstrem di Yogyakarta?"
+"Gempa dengan magnitud di atas 5 derajat minggu ini?"
+"Bandung ada gempa dekat-dekat sini?"
+```
+
+#### Features
+
+- ⚡ **Caching** — Smart TTL-based caching for optimal performance
+- 🐛 **Debug Mode** — Run `bmkg-api-mcp --debug` for verbose logging
+- 🔌 **7 Specialized Prompts** — Earthquake, weather, region, emergency, travel, research, and daily briefing assistants
+
+**📖 Full Setup Guide:** See [MCP_SETUP.md](MCP_SETUP.md) for detailed configuration for all supported IDEs.
 
 ### Self-Hosting
 
@@ -231,27 +292,87 @@ curl https://bmkg-restapi.vercel.app/v1/wilayah/search?q=wiradesa
 
 ### 🤖 MCP Server (untuk AI Assistants)
 
-Gunakan data BMKG langsung di Claude Desktop, Cursor, VS Code, dan AI assistants lain yang kompatibel dengan MCP.
+[![PyPI](https://img.shields.io/pypi/v/bmkg-api-mcp.svg)](https://pypi.org/project/bmkg-api-mcp/)
+
+Gunakan data BMKG langsung di **Claude Desktop**, **Cursor**, **VS Code**, **Windsurf**, **Zed**, dan AI assistants lain yang kompatibel dengan MCP.
+
+#### Instalasi
 
 ```bash
-# Install MCP server
+# Via pipx (direkomendasikan)
 pipx install bmkg-api-mcp
+
+# Via pip
+pip install bmkg-api-mcp
 ```
 
-**Tools Tersedia:**
-| Tool | Deskripsi |
-|------|-----------|
-| `get_latest_earthquake` | Data gempa terbaru |
-| `get_weather_forecast` | Prakiraan cuaca 3 hari |
-| `get_weather_warnings` | Peringatan cuaca (nowcast) |
-| `search_regions` | Cari wilayah Indonesia |
+#### Setup Cepat
 
-**Panduan Setup:** Lihat [MCP_SETUP.md](MCP_SETUP.md) untuk konfigurasi detail untuk Claude Desktop, Cursor, VS Code, dan lainnya.
+**Claude Desktop:**
+```bash
+# Edit file config
+nano ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
 
-**Contoh prompt:**
-- "Gempa terbaru di Indonesia?"
-- "Cuaca 3 hari ke depan di Jakarta Selatan?"
-- "Cari kode wilayah untuk Tebet"
+Tambahkan ke config:
+```json
+{
+  "mcpServers": {
+    "bmkg-api": {
+      "command": "bmkg-api-mcp"
+    }
+  }
+}
+```
+
+**Cursor:**
+1. Buka Settings → Features → MCP Servers
+2. Klik "Add New MCP Server"
+3. Name: `bmkg-api`, Type: `command`, Command: `bmkg-api-mcp`
+
+**VS Code (Cline/Roo Code):**
+```json
+{
+  "mcpServers": {
+    "bmkg-api": {
+      "command": "bmkg-api-mcp",
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
+```
+
+#### Tools Tersedia (15)
+
+| Kategori | Tools |
+|----------|-------|
+| **🌍 Gempa** | `get_latest_earthquake`, `get_recent_earthquakes`, `get_felt_earthquakes`, `get_nearby_earthquakes` |
+| **🌤️ Cuaca** | `get_weather_forecast`, `get_current_weather` |
+| **⚠️ Nowcast** | `get_weather_warnings`, `check_location_warnings` |
+| **📍 Wilayah** | `search_regions`, `get_provinces`, `get_districts`, `get_subdistricts`, `get_villages` |
+| **🔧 Utility** | `get_cache_stats`, `debug_ping` |
+
+#### Contoh Prompt
+
+Coba query bahasa alami ini di AI assistant Anda:
+
+```
+"Gempa terbaru di Indonesia berapa magnitudenya?"
+"Cuaca 3 hari ke depan di Jakarta Selatan?"
+"Cari kode wilayah untuk Kelapa Gading"
+"Ada peringatan cuaca ekstrem di Yogyakarta?"
+"Gempa dengan magnitud di atas 5 derajat minggu ini?"
+"Bandung ada gempa dekat-dekat sini?"
+```
+
+#### Fitur
+
+- ⚡ **Caching** — Caching cerdas dengan TTL untuk performa optimal
+- 🐛 **Debug Mode** — Jalankan `bmkg-api-mcp --debug` untuk logging detail
+- 🔌 **7 Prompt Spesialis** — Asisten gempa, cuaca, wilayah, darurat, travel, riset, dan briefing harian
+
+**📖 Panduan Lengkap:** Lihat [MCP_SETUP.md](MCP_SETUP.md) untuk konfigurasi detail semua IDE yang didukung.
 
 ### Self-Hosting
 
