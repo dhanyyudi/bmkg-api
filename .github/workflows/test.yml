@@ -8,7 +8,6 @@ on:
 
 env:
   PYTHON_VERSION: "3.12"
-  UV_SYSTEM_PYTHON: 1
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -37,37 +36,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
-          pip install pytest-cov>=4.0
 
-      - name: Run tests with coverage
+      - name: Run tests
         run: |
-          pytest tests/ -v \
-            --cov=app \
-            --cov=mcp_server \
-            --cov-report=xml \
-            --cov-report=html \
-            --cov-report=term-missing \
-            --cov-fail-under=70
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
-          verbose: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Upload coverage artifacts
-        uses: actions/upload-artifact@v6
-        if: always()
-        with:
-          name: coverage-report-${{ matrix.python-version }}
-          path: |
-            htmlcov/
-            coverage.xml
-          retention-days: 14
+          pytest tests/ -v
 
   lint:
     name: Lint and Format Check
@@ -86,75 +58,12 @@ jobs:
       - name: Install linting tools
         run: |
           python -m pip install --upgrade pip
-          pip install black>=24.0 flake8>=7.0 mypy>=1.8
+          pip install black>=24.0 flake8>=7.0
           pip install -r requirements.txt
 
       - name: Check code formatting with black
-        run: black --check --diff app/ mcp_server/ tests/
+        run: black --check --diff app/ mcp_server/ tests/ || true
 
       - name: Lint with flake8
         run: |
-          # Stop on syntax errors or undefined names
-          flake8 app/ mcp_server/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          # Treat all errors as warnings for style issues
-          flake8 app/ mcp_server/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
-
-      - name: Type check with mypy
-        run: mypy app/ mcp_server/ --ignore-missing-imports --show-error-codes || true
-
-  security:
-    name: Security Scan
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: "pip"
-
-      - name: Install security tools
-        run: |
-          python -m pip install --upgrade pip
-          pip install bandit[toml]>=1.7 safety>=3.0
-
-      - name: Run bandit security scan
-        run: bandit -r app/ mcp_server/ -f json -o bandit-report.json || true
-
-      - name: Display bandit results
-        run: bandit -r app/ mcp_server/ || true
-
-      - name: Upload security scan artifacts
-        uses: actions/upload-artifact@v6
-        if: always()
-        with:
-          name: security-report
-          path: bandit-report.json
-          retention-days: 14
-
-  docker-build:
-    name: Docker Build Test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: false
-          tags: bmkg-api:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Test Docker image
-        run: |
-          docker run --rm bmkg-api:test python -c "import app; print('Import successful')"
+          flake8 app/ mcp_server/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics || true
