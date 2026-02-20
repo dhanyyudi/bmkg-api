@@ -22,6 +22,14 @@
       "destination": "/landing/$1"
     },
     {
+      "source": "/self-host.html",
+      "destination": "/landing/self-host.html"
+    },
+    {
+      "source": "/mcp-setup.html",
+      "destination": "/landing/mcp-setup.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "api/index.py"
     }

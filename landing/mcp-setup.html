@@ -1,0 +1,556 @@
+<!doctype html>
+<html
+  lang="en"
+  x-data="{ 
+    darkMode: localStorage.getItem('darkMode') === 'true',
+    activeTab: 'claude',
+    copySuccess: false
+  }"
+  x-bind:class="{ 'dark': darkMode }"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MCP Server Setup Guide - BMKG API</title>
+    <meta
+      name="description"
+      content="Setup guide for BMKG API MCP Server - Connect to Claude, Cursor, VS Code, and other AI assistants"
+    />
+
+    <!-- Tailwind CSS (Compiled) -->
+    <link rel="stylesheet" href="/static/output.css" />
+
+    <!-- Alpine.js -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+
+    <!-- Prism.js for syntax highlighting -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+      [x-cloak] {
+        display: none !important;
+      }
+      .gradient-text {
+        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .gradient-bg {
+        background: linear-gradient(135deg, #eff6ff 0%, #f3e8ff 100%);
+      }
+      .dark .gradient-bg {
+        background: linear-gradient(135deg, #1e3a5f 0%, #4c1d95 100%);
+      }
+      .step-number {
+        background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+      }
+      .tab-active {
+        border-bottom: 2px solid #7c3aed;
+        color: #7c3aed;
+      }
+      .dark .tab-active {
+        color: #a78bfa;
+        border-color: #a78bfa;
+      }
+    </style>
+  </head>
+
+  <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur border-b border-gray-200 dark:border-gray-800">
+      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2">
+          <i data-lucide="activity" class="w-6 h-6 text-primary-600"></i>
+          <span class="font-bold text-xl">BMKG API</span>
+        </a>
+        <div class="flex items-center gap-4">
+          <a href="/" class="text-sm hover:text-primary-600 transition-colors">← Back to Home</a>
+          <button
+            @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)"
+            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          >
+            <i x-show="!darkMode" data-lucide="moon" class="w-5 h-5"></i>
+            <i x-show="darkMode" data-lucide="sun" class="w-5 h-5" x-cloak></i>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg py-16 sm:py-20">
+      <div class="max-w-4xl mx-auto px-4 text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium mb-6">
+          <i data-lucide="bot" class="w-4 h-4"></i>
+          AI Assistant Integration
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-bold mb-6">
+          MCP Server <span class="gradient-text">Setup Guide</span>
+        </h1>
+        <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Connect BMKG Indonesia weather, earthquake, and region data to your favorite AI assistants
+        </p>
+      </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section class="py-12 sm:py-16 bg-white dark:bg-gray-900">
+      <div class="max-w-4xl mx-auto px-4">
+        <div class="flex items-center gap-3 mb-8">
+          <div class="w-10 h-10 step-number rounded-lg flex items-center justify-center text-white font-bold">1</div>
+          <h2 class="text-2xl font-bold">Install MCP Server</h2>
+        </div>
+
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+          <p class="text-gray-600 dark:text-gray-400 mb-4">
+            Install the BMKG API MCP Server using pipx (recommended) or pip:
+          </p>
+          
+          <div class="space-y-4">
+            <div>
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Via pipx (recommended):</p>
+              <div class="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700 relative group">
+                <code class="text-sm text-gray-800 dark:text-green-400 font-mono">pipx install bmkg-api-mcp</code>
+                <button
+                  @click="navigator.clipboard.writeText('pipx install bmkg-api-mcp'); copySuccess = true; setTimeout(() => copySuccess = false, 2000)"
+                  class="absolute top-2 right-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-200 dark:bg-gray-700 rounded"
+                  title="Copy"
+                >
+                  <i data-lucide="copy" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Via pip:</p>
+              <div class="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700 relative group">
+                <code class="text-sm text-gray-800 dark:text-green-400 font-mono">pip install bmkg-api-mcp</code>
+                <button
+                  @click="navigator.clipboard.writeText('pip install bmkg-api-mcp'); copySuccess = true; setTimeout(() => copySuccess = false, 2000)"
+                  class="absolute top-2 right-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-200 dark:bg-gray-700 rounded"
+                  title="Copy"
+                >
+                  <i data-lucide="copy" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Verify installation:</p>
+              <div class="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <code class="text-sm text-gray-800 dark:text-green-400 font-mono">bmkg-api-mcp --version</code>
+                <span class="text-gray-500 dark:text-gray-400 ml-4"># Should output: bmkg-api-mcp 1.0.2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Copy success toast -->
+        <div
+          x-show="copySuccess"
+          x-transition
+          class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
+          x-cloak
+        >
+          <i data-lucide="check" class="w-4 h-4"></i>
+          Copied to clipboard!
+        </div>
+      </div>
+    </section>
+
+    <!-- IDE Configuration Section -->
+    <section class="py-12 sm:py-16 bg-gray-50 dark:bg-gray-800/50">
+      <div class="max-w-4xl mx-auto px-4">
+        <div class="flex items-center gap-3 mb-8">
+          <div class="w-10 h-10 step-number rounded-lg flex items-center justify-center text-white font-bold">2</div>
+          <h2 class="text-2xl font-bold">Configure Your IDE</h2>
+        </div>
+
+        <!-- Tabs -->
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+          <!-- Tab Headers -->
+          <div class="flex border-b border-gray-200 dark:border-gray-800 overflow-x-auto">
+            <button
+              @click="activeTab = 'claude'"
+              :class="{ 'tab-active': activeTab === 'claude' }"
+              class="flex items-center gap-2 px-6 py-4 font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 whitespace-nowrap transition-colors"
+            >
+              <i data-lucide="message-square" class="w-5 h-5"></i>
+              Claude Desktop
+            </button>
+            <button
+              @click="activeTab = 'cursor'"
+              :class="{ 'tab-active': activeTab === 'cursor' }"
+              class="flex items-center gap-2 px-6 py-4 font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 whitespace-nowrap transition-colors"
+            >
+              <i data-lucide="mouse-pointer-2" class="w-5 h-5"></i>
+              Cursor
+            </button>
+            <button
+              @click="activeTab = 'vscode'"
+              :class="{ 'tab-active': activeTab === 'vscode' }"
+              class="flex items-center gap-2 px-6 py-4 font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 whitespace-nowrap transition-colors"
+            >
+              <i data-lucide="code-2" class="w-5 h-5"></i>
+              VS Code
+            </button>
+            <button
+              @click="activeTab = 'windsurf'"
+              :class="{ 'tab-active': activeTab === 'windsurf' }"
+              class="flex items-center gap-2 px-6 py-4 font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 whitespace-nowrap transition-colors"
+            >
+              <i data-lucide="wind" class="w-5 h-5"></i>
+              Windsurf
+            </button>
+          </div>
+
+          <!-- Tab Content -->
+          <div class="p-6">
+            <!-- Claude Desktop -->
+            <div x-show="activeTab === 'claude'" x-transition>
+              <h3 class="text-lg font-semibold mb-4">Claude Desktop Setup</h3>
+              <ol class="space-y-4 text-gray-600 dark:text-gray-400">
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
+                  <span>Open Claude Desktop</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
+                  <span>Go to Settings (Cmd/Ctrl + ,)</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
+                  <span>Click "Edit Config" to open the configuration file</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">4</span>
+                  <span>Add the following configuration:</span>
+                </li>
+              </ol>
+              <div class="mt-4 bg-gray-100 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <pre><code class="language-json">{
+  "mcpServers": {
+    "bmkg-api": {
+      "command": "bmkg-api-mcp"
+    }
+  }
+}</code></pre>
+              </div>
+              <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                <i data-lucide="alert-circle" class="w-4 h-4 inline mr-1"></i>
+                Restart Claude Desktop after adding the configuration.
+              </p>
+            </div>
+
+            <!-- Cursor -->
+            <div x-show="activeTab === 'cursor'" x-transition x-cloak>
+              <h3 class="text-lg font-semibold mb-4">Cursor Setup</h3>
+              <ol class="space-y-4 text-gray-600 dark:text-gray-400">
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
+                  <span>Open Cursor</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
+                  <span>Go to Settings (Cmd/Ctrl + ,)</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
+                  <span>Navigate to <strong>Features</strong> → <strong>MCP Servers</strong></span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">4</span>
+                  <span>Click <strong>Add New MCP Server</strong></span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">5</span>
+                  <span>Fill in the details:</span>
+                </li>
+              </ol>
+              <div class="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <ul class="space-y-2 text-sm">
+                  <li><strong>Name:</strong> <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">bmkg-api</code></li>
+                  <li><strong>Type:</strong> <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">command</code></li>
+                  <li><strong>Command:</strong> <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">bmkg-api-mcp</code></li>
+                </ul>
+              </div>
+              <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                <i data-lucide="check-circle" class="w-4 h-4 inline mr-1"></i>
+                Click <strong>Add</strong> and the tools will be available in Cursor chat.
+              </p>
+            </div>
+
+            <!-- VS Code -->
+            <div x-show="activeTab === 'vscode'" x-transition x-cloak>
+              <h3 class="text-lg font-semibold mb-4">VS Code Setup (with Cline/Roo Code)</h3>
+              <div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p class="text-sm text-blue-800 dark:text-blue-300">
+                  <i data-lucide="info" class="w-4 h-4 inline mr-1"></i>
+                  Requires <strong>Cline</strong> or <strong>Roo Code</strong> extension installed.
+                </p>
+              </div>
+              <ol class="space-y-4 text-gray-600 dark:text-gray-400">
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
+                  <span>Open VS Code with Cline/Roo Code extension</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
+                  <span>Open the Cline/Roo Code panel</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
+                  <span>Click Settings (gear icon) → <strong>MCP Servers</strong></span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">4</span>
+                  <span>Add the following configuration:</span>
+                </li>
+              </ol>
+              <div class="mt-4 bg-gray-100 dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <pre><code class="language-json">{
+  "mcpServers": {
+    "bmkg-api": {
+      "command": "bmkg-api-mcp",
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}</code></pre>
+              </div>
+            </div>
+
+            <!-- Windsurf -->
+            <div x-show="activeTab === 'windsurf'" x-transition x-cloak>
+              <h3 class="text-lg font-semibold mb-4">Windsurf Setup</h3>
+              <ol class="space-y-4 text-gray-600 dark:text-gray-400">
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
+                  <span>Open Windsurf</span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
+                  <span>Go to Settings → <strong>Cascade</strong> → <strong>MCP Servers</strong></span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
+                  <span>Click <strong>Add Server</strong></span>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">4</span>
+                  <span>Fill in the details:</span>
+                </li>
+              </ol>
+              <div class="mt-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                <ul class="space-y-2 text-sm">
+                  <li><strong>Name:</strong> <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">bmkg-api</code></li>
+                  <li><strong>Type:</strong> <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">command</code></li>
+                  <li><strong>Command:</strong> <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">bmkg-api-mcp</code></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Available Tools Section -->
+    <section class="py-12 sm:py-16 bg-white dark:bg-gray-900">
+      <div class="max-w-4xl mx-auto px-4">
+        <div class="flex items-center gap-3 mb-8">
+          <div class="w-10 h-10 step-number rounded-lg flex items-center justify-center text-white font-bold">3</div>
+          <h2 class="text-2xl font-bold">Available Tools</h2>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Earthquake -->
+          <div class="p-5 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+                <i data-lucide="activity" class="w-5 h-5 text-red-600"></i>
+              </div>
+              <h3 class="font-semibold">Earthquake</h3>
+            </div>
+            <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <li>• get_latest_earthquake</li>
+              <li>• get_recent_earthquakes</li>
+              <li>• get_felt_earthquakes</li>
+              <li>• get_nearby_earthquakes</li>
+            </ul>
+          </div>
+
+          <!-- Weather -->
+          <div class="p-5 bg-sky-50 dark:bg-sky-900/20 rounded-xl border border-sky-100 dark:border-sky-800">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-lg flex items-center justify-center">
+                <i data-lucide="cloud-sun" class="w-5 h-5 text-sky-600"></i>
+              </div>
+              <h3 class="font-semibold">Weather</h3>
+            </div>
+            <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <li>• get_weather_forecast</li>
+              <li>• get_current_weather</li>
+            </ul>
+          </div>
+
+          <!-- Nowcast -->
+          <div class="p-5 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
+                <i data-lucide="cloud-lightning" class="w-5 h-5 text-amber-600"></i>
+              </div>
+              <h3 class="font-semibold">Nowcast</h3>
+            </div>
+            <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <li>• get_weather_warnings</li>
+              <li>• check_location_warnings</li>
+            </ul>
+          </div>
+
+          <!-- Region -->
+          <div class="p-5 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-800">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
+                <i data-lucide="map-pin" class="w-5 h-5 text-emerald-600"></i>
+              </div>
+              <h3 class="font-semibold">Region</h3>
+            </div>
+            <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <li>• search_regions</li>
+              <li>• get_provinces</li>
+              <li>• get_districts</li>
+              <li>• get_subdistricts</li>
+              <li>• get_villages</li>
+            </ul>
+          </div>
+
+          <!-- Utility -->
+          <div class="p-5 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-100 dark:border-purple-800">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                <i data-lucide="cpu" class="w-5 h-5 text-purple-600"></i>
+              </div>
+              <h3 class="font-semibold">Utility</h3>
+            </div>
+            <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <li>• get_cache_stats</li>
+              <li>• debug_ping</li>
+            </ul>
+          </div>
+
+          <!-- Prompts -->
+          <div class="p-5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
+                <i data-lucide="message-circle" class="w-5 h-5 text-indigo-600"></i>
+              </div>
+              <h3 class="font-semibold">Prompts (7)</h3>
+            </div>
+            <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+              <li>• earthquake_assistant</li>
+              <li>• weather_assistant</li>
+              <li>• region_lookup_assistant</li>
+              <li>• +4 more...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Example Prompts Section -->
+    <section class="py-12 sm:py-16 bg-gray-50 dark:bg-gray-800/50">
+      <div class="max-w-4xl mx-auto px-4">
+        <h2 class="text-2xl font-bold mb-8 text-center">Try These Example Prompts</h2>
+        
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div class="p-4 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <p class="text-gray-700 dark:text-gray-300">"Gempa terbaru di Indonesia?"</p>
+          </div>
+          <div class="p-4 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <p class="text-gray-700 dark:text-gray-300">"Cuaca 3 hari ke depan di Jakarta?"</p>
+          </div>
+          <div class="p-4 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <p class="text-gray-700 dark:text-gray-300">"Cari kode wilayah untuk Tebet"</p>
+          </div>
+          <div class="p-4 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <p class="text-gray-700 dark:text-gray-300">"Ada peringatan cuaca di Yogyakarta?"</p>
+          </div>
+          <div class="p-4 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <p class="text-gray-700 dark:text-gray-300">"Gempa magnitude di atas 5 minggu ini?"</p>
+          </div>
+          <div class="p-4 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <p class="text-gray-700 dark:text-gray-300">"Bandung ada gempa dekat-dekat sini?"</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Troubleshooting Section -->
+    <section class="py-12 sm:py-16 bg-white dark:bg-gray-900">
+      <div class="max-w-4xl mx-auto px-4">
+        <h2 class="text-2xl font-bold mb-8">Troubleshooting</h2>
+        
+        <div class="space-y-6">
+          <div class="p-5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+            <h3 class="font-semibold mb-2 flex items-center gap-2">
+              <i data-lucide="alert-circle" class="w-5 h-5 text-amber-500"></i>
+              "command not found: bmkg-api-mcp"
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">Solution: Ensure pipx is in your PATH</p>
+            <div class="bg-gray-100 dark:bg-gray-900 rounded-lg p-3">
+              <code class="text-sm text-gray-800 dark:text-green-400 font-mono">pipx ensurepath</code>
+            </div>
+          </div>
+
+          <div class="p-5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+            <h3 class="font-semibold mb-2 flex items-center gap-2">
+              <i data-lucide="alert-circle" class="w-5 h-5 text-amber-500"></i>
+              Tools not appearing in AI assistant
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Solution: Restart your AI assistant application after configuration changes.</p>
+          </div>
+
+          <div class="p-5 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+            <h3 class="font-semibold mb-2 flex items-center gap-2">
+              <i data-lucide="alert-circle" class="w-5 h-5 text-amber-500"></i>
+              Debug mode
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">Run with debug logging for troubleshooting:</p>
+            <div class="bg-gray-100 dark:bg-gray-900 rounded-lg p-3">
+              <code class="text-sm text-gray-800 dark:text-green-400 font-mono">bmkg-api-mcp --debug</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+      <div class="max-w-4xl mx-auto px-4 text-center">
+        <p class="text-gray-600 dark:text-gray-400">
+          Need more help? Check the 
+          <a href="https://github.com/dhanyyudi/bmkg-api" class="text-primary-600 hover:underline">GitHub Repository</a>
+          or 
+          <a href="/" class="text-primary-600 hover:underline">API Documentation</a>
+        </p>
+      </div>
+    </footer>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>
