@@ -4,7 +4,16 @@
   x-data="{ 
     darkMode: localStorage.getItem('darkMode') === 'true',
     activeTab: 'claude',
-    copySuccess: false
+    copySuccess: false,
+    copyToClipboard(type) {
+      const configs = {
+        claudeHttp: JSON.stringify({ mcpServers: { 'bmkg-api': { url: 'https://mcp-bmkg.dhanypedia.it.com/mcp' } } }, null, 2),
+        vscodeHttp: JSON.stringify({ mcpServers: { 'bmkg-api': { url: 'https://mcp-bmkg.dhanypedia.it.com/mcp', disabled: false, autoApprove: [] } } }, null, 2)
+      };
+      navigator.clipboard.writeText(configs[type] || type);
+      this.copySuccess = true;
+      setTimeout(() => this.copySuccess = false, 2000);
+    }
   }"
   x-bind:class="{ 'dark': darkMode }"
 >
@@ -356,7 +365,7 @@
   }
 }</code></pre>
                 <button
-                  @click="navigator.clipboard.writeText('{\n  \"mcpServers\": {\n    \"bmkg-api\": {\n      \"url\": \"https://mcp-bmkg.dhanypedia.it.com/mcp\"\n    }\n  }\n}'); copySuccess = true; setTimeout(() => copySuccess = false, 2000)"
+                  @click="copyToClipboard('claudeHttp')"
                   class="absolute top-2 right-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-200 dark:bg-gray-700 rounded"
                   title="Copy"
                 >
@@ -441,7 +450,7 @@
   }
 }</code></pre>
                 <button
-                  @click="navigator.clipboard.writeText('{\n  \"mcpServers\": {\n    \"bmkg-api\": {\n      \"url\": \"https://mcp-bmkg.dhanypedia.it.com/mcp\",\n      \"disabled\": false,\n      \"autoApprove\": []\n    }\n  }\n}'); copySuccess = true; setTimeout(() => copySuccess = false, 2000)"
+                  @click="copyToClipboard('vscodeHttp')"
                   class="absolute top-2 right-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-200 dark:bg-gray-700 rounded"
                   title="Copy"
                 >
