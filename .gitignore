@@ -64,3 +64,13 @@ package-lock.json
 
 # Build files (keep output.css for production)
 landing/input.css
+
+# Private deployment configs (homeserver)
+private/
+!private/.gitkeep
+
+# Homeserver deployment files (kept in private/ folder)
+docker-compose.mcp.yml
+Dockerfile.mcp
+HOMESERVER_DEPLOY.md
+deploy-homeserver.sh

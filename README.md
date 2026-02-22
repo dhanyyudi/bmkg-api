@@ -93,10 +93,81 @@ curl https://bmkg-restapi.vercel.app/v1/wilayah/search?q=tebet
 ### 🤖 MCP Server (for AI Assistants)
 
 [![PyPI](https://img.shields.io/pypi/v/bmkg-api-mcp.svg)](https://pypi.org/project/bmkg-api-mcp/)
+[![Smithery](https://img.shields.io/badge/Smithery-Compatible-brightgreen)](https://smithery.ai)
 
 Use BMKG data directly in **Claude Desktop**, **Cursor**, **VS Code**, **Windsurf**, **Zed**, and other MCP-compatible AI assistants.
 
-#### Installation
+#### Deployment Options
+
+We support **two deployment modes**:
+
+**🔌 Option A: HTTP Transport (No Installation Required)**
+- Connect via Smithery or HTTP-compatible MCP clients
+- No local installation needed
+- Best for: Web IDEs, cloud environments
+
+**💻 Option B: Stdio Transport (Local Install)**
+- Install via pipx/pip and run locally
+- Best for: Claude Desktop, Cursor, local development
+
+---
+
+#### Option A: HTTP Transport (Recommended for Web)
+
+**Smithery (smithery.ai) - Easiest:**
+1. Go to https://smithery.ai
+2. Search for "bmkg-api-mcp" or visit [direct link](https://smithery.ai/server/dhanyyudi/bmkg-id)
+3. Click "Add to Client"
+4. Done! No installation required.
+
+**Manual HTTP Configuration:**
+
+For MCP clients that support Streamable HTTP transport:
+
+**Claude Code:**
+```bash
+claude mcp add --transport http bmkg-api https://mcp-bmkg.dhanypedia.it.com/mcp
+```
+
+**Claude Desktop (Settings → MCP):**
+```json
+{
+  "mcpServers": {
+    "bmkg-api": {
+      "url": "https://mcp-bmkg.dhanypedia.it.com/mcp"
+    }
+  }
+}
+```
+
+**Cursor (Settings → MCP Servers):**
+1. Click "Add New MCP Server"
+2. Name: `bmkg-api`
+3. Type: `http`
+4. URL: `https://mcp-bmkg.dhanypedia.it.com/mcp`
+
+**VS Code (Cline/Roo Code):**
+```json
+{
+  "mcpServers": {
+    "bmkg-api": {
+      "url": "https://mcp-bmkg.dhanypedia.it.com/mcp",
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
+```
+
+**Windsurf:**
+1. Open Cascade → MCP Servers
+2. Click "+ Add Custom Server"
+3. Select "HTTP Transport"
+4. Enter URL: `https://mcp-bmkg.dhanypedia.it.com/mcp`
+
+---
+
+#### Option B: Stdio Transport (Local Installation)
 
 ```bash
 # Via pipx (recommended)
@@ -105,8 +176,6 @@ pipx install bmkg-api-mcp
 # Via pip
 pip install bmkg-api-mcp
 ```
-
-#### Quick Setup
 
 **Claude Desktop:**
 ```bash

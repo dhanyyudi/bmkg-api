@@ -820,27 +820,73 @@
           </p>
         </div>
 
+        <!-- Two Ways to Connect -->
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 p-6 mb-8">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+              <i data-lucide="plug" class="w-5 h-5 text-blue-600"></i>
+            </div>
+            <h3 class="text-xl font-semibold">Two Ways to Connect</h3>
+          </div>
+          <div class="grid md:grid-cols-2 gap-6">
+            <div class="border border-green-200 dark:border-green-800 rounded-lg p-4 bg-green-50/50 dark:bg-green-900/10">
+              <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="globe" class="w-5 h-5 text-green-600"></i>
+                <h4 class="font-semibold text-green-700 dark:text-green-400">Option 1: Streamable HTTP (No Install)</h4>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Connect instantly via Smithery or HTTP-compatible clients. No local installation required!</p>
+              <div class="bg-gray-100 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                <code class="text-xs text-gray-800 dark:text-green-400 font-mono break-all">https://mcp-bmkg.dhanypedia.it.com/mcp</code>
+              </div>
+              <a href="https://smithery.ai/server/dhanyyudi/bmkg-id" target="_blank" class="inline-flex items-center gap-1 mt-2 text-sm text-green-600 hover:text-green-700 font-medium">
+                Add via Smithery
+                <i data-lucide="external-link" class="w-3 h-3"></i>
+              </a>
+            </div>
+            <div class="border border-purple-200 dark:border-purple-800 rounded-lg p-4 bg-purple-50/50 dark:bg-purple-900/10">
+              <div class="flex items-center gap-2 mb-2">
+                <i data-lucide="terminal" class="w-5 h-5 text-purple-600"></i>
+                <h4 class="font-semibold text-purple-700 dark:text-purple-400">Option 2: Local Install (stdio)</h4>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Install locally for offline use and full control. Best for Claude Desktop, Cursor.</p>
+              <div class="bg-gray-100 dark:bg-gray-900 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                <code class="text-xs text-gray-800 dark:text-green-400 font-mono">pipx install bmkg-api-mcp</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="grid lg:grid-cols-2 gap-8 mb-12">
-          <!-- Installation -->
+          <!-- HTTP Transport Setup -->
           <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 p-6">
             <div class="flex items-center gap-3 mb-4">
-              <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                <i data-lucide="terminal" class="w-5 h-5 text-purple-600"></i>
+              <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                <i data-lucide="wifi" class="w-5 h-5 text-green-600"></i>
               </div>
-              <h3 class="text-xl font-semibold">Installation</h3>
+              <h3 class="text-xl font-semibold">HTTP Transport Setup</h3>
             </div>
             <div class="space-y-4">
               <div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Install via pipx (recommended):</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Claude Code:</p>
                 <div class="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 overflow-x-auto border border-gray-200 dark:border-gray-700">
-                  <code class="text-sm text-gray-800 dark:text-green-400 font-mono">pipx install bmkg-api-mcp</code>
+                  <code class="text-sm text-gray-800 dark:text-green-400 font-mono">claude mcp add --transport http bmkg-api https://mcp-bmkg.dhanypedia.it.com/mcp</code>
                 </div>
               </div>
               <div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Verify installation:</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Claude Desktop config:</p>
                 <div class="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 overflow-x-auto border border-gray-200 dark:border-gray-700">
-                  <code class="text-sm text-gray-800 dark:text-green-400 font-mono">bmkg-api-mcp --version</code>
+                  <pre class="text-xs text-gray-800 dark:text-green-400 font-mono">{
+  "mcpServers": {
+    "bmkg-api": {
+      "url": "https://mcp-bmkg.dhanypedia.it.com/mcp"
+    }
+  }
+}</pre>
                 </div>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-green-600">
+                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                <span>No installation needed!</span>
               </div>
             </div>
           </div>

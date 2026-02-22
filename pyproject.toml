@@ -37,6 +37,7 @@ dev = [
 
 [project.scripts]
 bmkg-api-mcp = "mcp_server.server:main"
+bmkg-mcp-http = "mcp_server.http_server:main"
 
 [project.urls]
 Homepage = "https://github.com/dhanyyudi/bmkg-api"
