@@ -15,7 +15,7 @@ slowapi>=0.1.9
 cachetools>=5.0
 
 # MCP Server - Use fastmcp for better streamable HTTP support
-fastmcp>=2.3.0
+fastmcp>=3.2.4
 
 # AnyIO for async runtime
 anyio>=4.0.0
