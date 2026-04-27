@@ -10,7 +10,7 @@ uvicorn[standard]>=0.27.0
 black>=24.0
 flake8>=7.0
 mypy>=1.8
-bandit[toml]>=1.7
+bandit[toml]>=1.9.4
 
 # Coverage
 pytest-cov>=4.1
