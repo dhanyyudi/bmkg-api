@@ -1,96 +1,91 @@
 """Region lookup tools for BMKG MCP Server."""
 
-from mcp_server.mcp_instance import mcp
-from mcp_server.client import client
-from mcp_server.utils import format_error_message
-from mcp_server.cache import cached
+from typing import Annotated
 
-@mcp.tool()
-@cached("region")
-async def search_regions(query: str) -> dict:
-    """
-    Search for regions in Indonesia (provinces, districts, subdistricts, villages).
-    
-    Args:
-        query: Search query (e.g., "tebet", "jakarta", "bandung", "yogyakarta")
-    
-    Returns matching regions with their codes that can be used with weather tools.
-    """
-    try:
-        return await client.get(
-            "/wilayah/search",
-            params={"q": query}
-        )
-    except Exception as e:
-        return {"error": format_error_message(e)}
+from pydantic import Field
 
-@mcp.tool()
-@cached("region")
-async def get_provinces() -> dict:
-    """
-    Get list of all provinces in Indonesia.
-    
-    Returns all 34 provinces with their codes.
-    """
-    try:
-        return await client.get("/wilayah/provinces")
-    except Exception as e:
-        return {"error": format_error_message(e)}
+from mcp_server.envelope import ToolResponse, call_api
+from mcp_server.mcp_instance import READ_ONLY, mcp
 
-@mcp.tool()
-@cached("region")
-async def get_districts(province_code: str) -> dict:
-    """
-    Get districts (kabupaten/kota) for a specific province.
-    
-    Args:
-        province_code: Province code (e.g., "31" for DKI Jakarta, "32" for Jawa Barat)
-    
-    Returns districts within the specified province.
-    """
-    try:
-        return await client.get(
-            "/wilayah/districts",
-            params={"province": province_code}
-        )
-    except Exception as e:
-        return {"error": format_error_message(e)}
 
-@mcp.tool()
-@cached("region")
-async def get_subdistricts(district_code: str) -> dict:
-    """
-    Get subdistricts (kecamatan) for a specific district.
-    
-    Args:
-        district_code: District code (e.g., "31.74" for Jakarta Selatan)
-    
-    Returns subdistricts within the specified district.
-    """
-    try:
-        return await client.get(
-            "/wilayah/subdistricts",
-            params={"district": district_code}
-        )
-    except Exception as e:
-        return {"error": format_error_message(e)}
+@mcp.tool(annotations={"title": "Search regions by name", **READ_ONLY})
+async def search_regions(
+    query: Annotated[
+        str,
+        Field(description="Part of a region name, e.g. 'tebet' or 'pekalongan'", min_length=2, max_length=100),
+    ],
+    limit: Annotated[int, Field(description="Maximum number of results", ge=1, le=100)] = 20,
+) -> ToolResponse:
+    """Search Indonesian administrative regions by name, at every level.
 
-@mcp.tool()
-@cached("region")
-async def get_villages(subdistrict_code: str) -> dict:
+    Returns the code, level (province, district, subdistrict or village) and
+    full path of each match. Weather tools need a village-level code (four
+    parts, like 31.74.04.1006): if a match is a higher level, list its villages
+    with get_villages.
     """
-    Get villages (kelurahan/desa) for a specific subdistrict.
-    
-    Args:
-        subdistrict_code: Subdistrict code (e.g., "31.74.04" for Pasar Minggu)
-    
-    Returns villages within the specified subdistrict with their adm4 codes
-    that can be used with weather tools.
+    return await call_api(
+        "search_regions", "/wilayah/search", {"q": query, "limit": limit}, cache_type="region"
+    )
+
+
+@mcp.tool(annotations={"title": "List provinces", **READ_ONLY})
+async def get_provinces() -> ToolResponse:
+    """List the provinces of Indonesia with their 2-digit codes.
+
+    Starting point for browsing down to a village. The list follows
+    Permendagri 72/2019 (34 provinces), so the provinces created in Papua
+    after 2022 are not listed.
     """
-    try:
-        return await client.get(
-            "/wilayah/villages",
-            params={"subdistrict": subdistrict_code}
-        )
-    except Exception as e:
-        return {"error": format_error_message(e)}
+    return await call_api("get_provinces", "/wilayah/provinces", cache_type="region")
+
+
+@mcp.tool(annotations={"title": "List districts in a province", **READ_ONLY})
+async def get_districts(
+    province_code: Annotated[
+        str, Field(description="2-digit province code, e.g. '31' for DKI Jakarta", pattern=r"^\d{2}$")
+    ],
+) -> ToolResponse:
+    """List the districts (kabupaten and kota) of one province."""
+    return await call_api(
+        "get_districts",
+        "/wilayah/districts",
+        {"province": province_code},
+        cache_type="region",
+        not_found="No province has that code. Use get_provinces to list valid codes.",
+    )
+
+
+@mcp.tool(annotations={"title": "List subdistricts in a district", **READ_ONLY})
+async def get_subdistricts(
+    district_code: Annotated[
+        str, Field(description="District code, e.g. '31.74' for Jakarta Selatan", pattern=r"^\d{2}\.\d{2}$")
+    ],
+) -> ToolResponse:
+    """List the subdistricts (kecamatan) of one district."""
+    return await call_api(
+        "get_subdistricts",
+        "/wilayah/subdistricts",
+        {"district": district_code},
+        cache_type="region",
+        not_found="No district has that code. Use get_districts to list valid codes.",
+    )
+
+
+@mcp.tool(annotations={"title": "List villages in a subdistrict", **READ_ONLY})
+async def get_villages(
+    subdistrict_code: Annotated[
+        str,
+        Field(description="Subdistrict code, e.g. '31.74.04' for Pasar Minggu", pattern=r"^\d{2}\.\d{2}\.\d{2}$"),
+    ],
+) -> ToolResponse:
+    """List the villages (kelurahan and desa) of one subdistrict.
+
+    Each village code is an adm4 code that the weather tools accept.
+    """
+    return await call_api(
+        "get_villages",
+        "/wilayah/villages",
+        {"subdistrict": subdistrict_code},
+        cache_type="region",
+        not_found="No subdistrict has that code. Use get_subdistricts to list valid codes.",
+    )

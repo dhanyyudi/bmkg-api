@@ -1,0 +1,14 @@
+{
+  "name": "bmkg-api",
+  "description": "Indonesian weather, earthquake and region data from BMKG for Claude Code",
+  "owner": {
+    "name": "Dhany Yudi Prasetyo"
+  },
+  "plugins": [
+    {
+      "name": "bmkg",
+      "source": "./plugins/bmkg",
+      "description": "Weather forecasts, earthquakes, severe weather warnings and region lookup for Indonesia, from BMKG open data"
+    }
+  ]
+}

@@ -1,0 +1,267 @@
+{
+  "tools": [
+    {
+      "name": "check_location_warnings",
+      "title": "Weather warnings for a place",
+      "read_only": true,
+      "required": [
+        "location"
+      ],
+      "parameters": {
+        "language": {
+          "default": "id",
+          "enum": [
+            "id",
+            "en"
+          ],
+          "type": "string"
+        },
+        "location": {
+          "maxLength": 100,
+          "minLength": 2,
+          "type": "string"
+        }
+      },
+      "result": [
+        "data",
+        "error",
+        "meta",
+        "status"
+      ]
+    },
+    {
+      "name": "get_current_weather",
+      "title": "Current weather",
+      "read_only": true,
+      "required": [
+        "adm4_code"
+      ],
+      "parameters": {
+        "adm4_code": {
+          "pattern": "^\\d{2}\\.\\d{2}\\.\\d{2}\\.\\d{4}$",
+          "type": "string"
+        }
+      },
+      "result": [
+        "data",
+        "error",
+        "meta",
+        "status"
+      ]
+    },
+    {
+      "name": "get_districts",
+      "title": "List districts in a province",
+      "read_only": true,
+      "required": [
+        "province_code"
+      ],
+      "parameters": {
+        "province_code": {
+          "pattern": "^\\d{2}$",
+          "type": "string"
+        }
+      },
+      "result": [
+        "data",
+        "error",
+        "meta",
+        "status"
+      ]
+    },
+    {
+      "name": "get_felt_earthquakes",
+      "title": "Recently felt earthquakes",
+      "read_only": true,
+      "required": [],
+      "parameters": {},
+      "result": [
+        "data",
+        "error",
+        "meta",
+        "status"
+      ]
+    },
+    {
+      "name": "get_latest_earthquake",
+      "title": "Latest earthquake",
+      "read_only": true,
+      "required": [],
+      "parameters": {},
+      "result": [
+        "data",
+        "error",
+        "meta",
+        "status"
+      ]
+    },
+    {
+      "name": "get_nearby_earthquakes",
+      "title": "Earthquakes near a point",
+      "read_only": true,
+      "required": [
+        "latitude",
+        "longitude"
+      ],
+      "parameters": {
+        "latitude": {
+          "maximum": 90,
+          "minimum": -90,
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180,
+          "minimum": -180,
+          "type": "number"
+        },
+        "radius_km": {
+          "default": 100,
+          "maximum": 500,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "result": [
+        "data",
+        "error",
+        "meta",
+        "status"
+      ]
+    },
+    {
+      "name": "get_provinces",
+      "title": "List provinces",
+      "read_only": true,
+      "required": [],
+      "parameters": {},
+      "result": [
+        "data",
+        "error",
+        "meta",
+        "status"
+      ]
+    },
+    {
+      "name": "get_recent_earthquakes",
+      "title": "Recent strong earthquakes (M 5.0+)",
+      "read_only": true,
+      "required": [],
+      "parameters": {},
+      "result": [
+        "data",
+        "error",
+        "meta",
+        "status"
+      ]
+    },
+    {
+      "name": "get_subdistricts",
+      "title": "List subdistricts in a district",
+      "read_only": true,
+      "required": [
+        "district_code"
+      ],
+      "parameters": {
+        "district_code": {
+          "pattern": "^\\d{2}\\.\\d{2}$",
+          "type": "string"
+        }
+      },
+      "result": [
+        "data",
+        "error",
+        "meta",
+        "status"
+      ]
+    },
+    {
+      "name": "get_villages",
+      "title": "List villages in a subdistrict",
+      "read_only": true,
+      "required": [
+        "subdistrict_code"
+      ],
+      "parameters": {
+        "subdistrict_code": {
+          "pattern": "^\\d{2}\\.\\d{2}\\.\\d{2}$",
+          "type": "string"
+        }
+      },
+      "result": [
+        "data",
+        "error",
+        "meta",
+        "status"
+      ]
+    },
+    {
+      "name": "get_weather_forecast",
+      "title": "3-day weather forecast",
+      "read_only": true,
+      "required": [
+        "adm4_code"
+      ],
+      "parameters": {
+        "adm4_code": {
+          "pattern": "^\\d{2}\\.\\d{2}\\.\\d{2}\\.\\d{4}$",
+          "type": "string"
+        }
+      },
+      "result": [
+        "data",
+        "error",
+        "meta",
+        "status"
+      ]
+    },
+    {
+      "name": "get_weather_warnings",
+      "title": "Active weather warnings",
+      "read_only": true,
+      "required": [],
+      "parameters": {
+        "language": {
+          "default": "id",
+          "enum": [
+            "id",
+            "en"
+          ],
+          "type": "string"
+        }
+      },
+      "result": [
+        "data",
+        "error",
+        "meta",
+        "status"
+      ]
+    },
+    {
+      "name": "search_regions",
+      "title": "Search regions by name",
+      "read_only": true,
+      "required": [
+        "query"
+      ],
+      "parameters": {
+        "limit": {
+          "default": 20,
+          "maximum": 100,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "query": {
+          "maxLength": 100,
+          "minLength": 2,
+          "type": "string"
+        }
+      },
+      "result": [
+        "data",
+        "error",
+        "meta",
+        "status"
+      ]
+    }
+  ]
+}

@@ -1,10 +1,15 @@
 """Test configuration for MCP tests."""
 
 import pytest
+import pytest_asyncio
 from unittest.mock import AsyncMock, patch
 
+from fastmcp import Client
+
+import mcp_server.server  # noqa: F401  (registers tools and prompts)
 from app.cache import InMemoryCache, cache
 from mcp_server.client import client
+from mcp_server.mcp_instance import mcp
 
 
 @pytest.fixture(autouse=True)
@@ -24,3 +29,10 @@ def mock_client():
     """
     with patch.object(client, "get", new=AsyncMock()):
         yield client
+
+
+@pytest_asyncio.fixture
+async def mcp_client():
+    """Talk to the server over the MCP protocol, in memory."""
+    async with Client(mcp) as session:
+        yield session

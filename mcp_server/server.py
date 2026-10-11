@@ -10,11 +10,11 @@ This server provides tools for accessing:
 """
 
 import argparse
-import datetime
 import logging
 import sys
 
 # Import the singleton MCP instance
+from mcp_server import __version__
 from mcp_server.mcp_instance import mcp
 
 # Import all tool modules to register them
@@ -200,49 +200,6 @@ Keep information concise and actionable."""
 
 
 # ============================================================
-# DEBUG TOOL
-# ============================================================
-
-
-@mcp.tool()
-async def debug_ping() -> dict:
-    """
-    Ping the MCP server for connectivity testing.
-    
-    Returns server status and timestamp.
-    """
-    return {
-        "status": "ok",
-        "server": "bmkg-api-mcp",
-        "version": "1.0.3",
-        "timestamp": datetime.datetime.now().isoformat(),
-        "tools_available": 14
-    }
-
-
-@mcp.tool()
-async def get_cache_stats() -> dict:
-    """
-    Get cache statistics for MCP server.
-    
-    Returns information about cache hits, misses, and TTL settings.
-    """
-    from mcp_server.cache import CACHE_TTL, HAS_CACHE
-    
-    if not HAS_CACHE:
-        return {
-            "cache_enabled": False,
-            "message": "Cache is not available"
-        }
-    
-    return {
-        "cache_enabled": True,
-        "ttl_settings": CACHE_TTL,
-        "note": "Cache TTL varies by tool type for optimal performance"
-    }
-
-
-# ============================================================
 # LOGGING SETUP
 # ============================================================
 
@@ -286,7 +243,7 @@ def main():
     parser.add_argument(
         "--version",
         action="version",
-        version="%(prog)s 1.0.3"
+        version=f"%(prog)s {__version__}"
     )
     
     args = parser.parse_args()
@@ -296,7 +253,7 @@ def main():
     
     # Log startup info
     logger = logging.getLogger("mcp_server")
-    logger.info("Starting BMKG MCP Server v1.0.3")
+    logger.info(f"Starting BMKG MCP Server v{__version__}")
     logger.info("Available tools: 13")
     logger.info("Transport: stdio")
     

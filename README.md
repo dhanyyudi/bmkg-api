@@ -1,5 +1,7 @@
 # BMKG API
 
+<!-- mcp-name: io.github.dhanyyudi/bmkg-api -->
+
 [![Docker](https://github.com/dhanyyudi/bmkg-api/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/dhanyyudi/bmkg-api/actions/workflows/docker-publish.yml)
 [![PyPI](https://img.shields.io/pypi/v/bmkg-api-mcp.svg)](https://pypi.org/project/bmkg-api-mcp/)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
@@ -126,8 +128,16 @@ For MCP clients that support Streamable HTTP transport:
 
 **Claude Code:**
 ```bash
-claude mcp add --transport http bmkg-api https://mcp-bmkg.dhanypedia.com/mcp
+claude mcp add --transport http bmkg https://mcp-bmkg.dhanypedia.com/mcp
 ```
+
+Or as a plugin:
+```bash
+claude plugin marketplace add dhanyyudi/bmkg-api
+claude plugin install bmkg@bmkg-api
+```
+
+**Clients that only support stdio** can bridge to the hosted server with `npx -y mcp-remote https://mcp-bmkg.dhanypedia.com/mcp`.
 
 **Claude Desktop (Settings → MCP):**
 ```json
@@ -170,7 +180,10 @@ claude mcp add --transport http bmkg-api https://mcp-bmkg.dhanypedia.com/mcp
 #### Option B: Stdio Transport (Local Installation)
 
 ```bash
-# Via pipx (recommended)
+# No install needed with uv: use "uvx bmkg-api-mcp" as the command
+uvx bmkg-api-mcp --version
+
+# Via pipx
 pipx install bmkg-api-mcp
 
 # Via pip
@@ -212,7 +225,7 @@ Add this to your config:
 }
 ```
 
-#### Available Tools (15)
+#### Available Tools (13)
 
 | Category | Tools |
 |----------|-------|
@@ -220,7 +233,6 @@ Add this to your config:
 | **🌤️ Weather** | `get_weather_forecast`, `get_current_weather` |
 | **⚠️ Nowcast** | `get_weather_warnings`, `check_location_warnings` |
 | **📍 Region** | `search_regions`, `get_provinces`, `get_districts`, `get_subdistricts`, `get_villages` |
-| **🔧 Utility** | `get_cache_stats`, `debug_ping` |
 
 #### Example Prompts
 
@@ -237,6 +249,8 @@ Try these natural language queries in your AI assistant:
 
 #### Features
 
+- 📦 **One response format** — Every tool returns `status`, `data`, `error` and `meta`, with stable error codes ([details](MCP_SETUP.md#response-format))
+- 🔒 **Read-only** — All tools are annotated as read-only
 - ⚡ **Caching** — Smart TTL-based caching for optimal performance
 - 🐛 **Debug Mode** — Run `bmkg-api-mcp --debug` for verbose logging
 - 🔌 **7 Specialized Prompts** — Earthquake, weather, region, emergency, travel, research, and daily briefing assistants
@@ -361,7 +375,22 @@ curl https://bmkg-api.dhanypedia.com/v1/wilayah/search?q=wiradesa
 
 Gunakan data BMKG langsung di **Claude Desktop**, **Cursor**, **VS Code**, **Windsurf**, **Zed**, dan AI assistants lain yang kompatibel dengan MCP.
 
-#### Instalasi
+#### Tanpa Instalasi (Server Ter-hosting)
+
+Endpoint: `https://mcp-bmkg.dhanypedia.com/mcp` (Streamable HTTP, tanpa API key).
+
+```bash
+# Claude Code
+claude mcp add --transport http bmkg https://mcp-bmkg.dhanypedia.com/mcp
+
+# Atau sebagai plugin Claude Code
+claude plugin marketplace add dhanyyudi/bmkg-api
+claude plugin install bmkg@bmkg-api
+```
+
+Untuk klien lain, lihat [MCP_SETUP.md](MCP_SETUP.md).
+
+#### Instalasi Lokal
 
 ```bash
 # Via pipx (direkomendasikan)
@@ -408,7 +437,7 @@ Tambahkan ke config:
 }
 ```
 
-#### Tools Tersedia (15)
+#### Tools Tersedia (13)
 
 | Kategori | Tools |
 |----------|-------|
@@ -416,7 +445,6 @@ Tambahkan ke config:
 | **🌤️ Cuaca** | `get_weather_forecast`, `get_current_weather` |
 | **⚠️ Nowcast** | `get_weather_warnings`, `check_location_warnings` |
 | **📍 Wilayah** | `search_regions`, `get_provinces`, `get_districts`, `get_subdistricts`, `get_villages` |
-| **🔧 Utility** | `get_cache_stats`, `debug_ping` |
 
 #### Contoh Prompt
 
@@ -433,6 +461,8 @@ Coba query bahasa alami ini di AI assistant Anda:
 
 #### Fitur
 
+- 📦 **Satu format respons** — Semua tool mengembalikan `status`, `data`, `error`, dan `meta`, dengan kode error yang stabil ([detail](MCP_SETUP.md#response-format))
+- 🔒 **Read-only** — Semua tool ditandai read-only
 - ⚡ **Caching** — Caching cerdas dengan TTL untuk performa optimal
 - 🐛 **Debug Mode** — Jalankan `bmkg-api-mcp --debug` untuk logging detail
 - 🔌 **7 Prompt Spesialis** — Asisten gempa, cuaca, wilayah, darurat, travel, riset, dan briefing harian

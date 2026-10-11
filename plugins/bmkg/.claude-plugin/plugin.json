@@ -1,0 +1,14 @@
+{
+  "name": "bmkg",
+  "displayName": "BMKG Indonesia",
+  "version": "1.0.0",
+  "description": "Weather forecasts, earthquakes, severe weather warnings and region lookup for Indonesia, from BMKG open data",
+  "author": {
+    "name": "Dhany Yudi Prasetyo",
+    "url": "https://github.com/dhanyyudi"
+  },
+  "homepage": "https://bmkg-api.dhanypedia.com",
+  "repository": "https://github.com/dhanyyudi/bmkg-api",
+  "license": "MIT",
+  "keywords": ["bmkg", "indonesia", "weather", "earthquake", "mcp"]
+}

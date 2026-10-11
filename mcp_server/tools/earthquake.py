@@ -1,83 +1,59 @@
 """Earthquake tools for BMKG MCP Server."""
 
-from mcp_server.mcp_instance import mcp
-from mcp_server.client import client
-from mcp_server.utils import format_error_message, validate_coordinates, validate_radius
-from mcp_server.cache import cached
+from typing import Annotated
+
+from pydantic import Field
+
+from mcp_server.envelope import ToolResponse, call_api
+from mcp_server.mcp_instance import READ_ONLY, mcp
 
 
-@mcp.tool()
-@cached("earthquake")
-async def get_latest_earthquake() -> dict:
+@mcp.tool(annotations={"title": "Latest earthquake", **READ_ONLY})
+async def get_latest_earthquake() -> ToolResponse:
+    """Get the single most recent earthquake recorded by BMKG in Indonesia.
+
+    Returns magnitude, depth, coordinates, region, time (UTC), tsunami potential,
+    felt reports and a shakemap image URL. Use this for "was there just an
+    earthquake?"; use get_recent_earthquakes for a list.
     """
-    Get the latest earthquake data from BMKG Indonesia.
-    
-    Returns information about the most recent earthquake including:
-    - Magnitude and location
-    - Depth and coordinates
-    - Time and date
-    - Whether it was felt by people
+    return await call_api("get_latest_earthquake", "/earthquake/latest", cache_type="earthquake")
+
+
+@mcp.tool(annotations={"title": "Recent strong earthquakes (M 5.0+)", **READ_ONLY})
+async def get_recent_earthquakes() -> ToolResponse:
+    """List the 15 most recent earthquakes of magnitude 5.0 or higher in Indonesia.
+
+    Newest first. Smaller earthquakes are not included: use get_felt_earthquakes
+    for those that people reported feeling.
     """
-    try:
-        return await client.get("/earthquake/latest")
-    except Exception as e:
-        return {"error": format_error_message(e)}
+    return await call_api("get_recent_earthquakes", "/earthquake/recent", cache_type="earthquake")
 
 
-@mcp.tool()
-@cached("earthquake")
-async def get_recent_earthquakes() -> dict:
+@mcp.tool(annotations={"title": "Recently felt earthquakes", **READ_ONLY})
+async def get_felt_earthquakes() -> ToolResponse:
+    """List the 15 most recent earthquakes that people in Indonesia reported feeling.
+
+    Includes small earthquakes and, in `felt_report`, the places and intensity
+    (MMI) where each was felt.
     """
-    Get recent earthquakes with magnitude 5.0+ from BMKG Indonesia.
-    
-    Returns a list of significant earthquakes that occurred recently.
-    """
-    try:
-        return await client.get("/earthquake/recent")
-    except Exception as e:
-        return {"error": format_error_message(e)}
+    return await call_api("get_felt_earthquakes", "/earthquake/felt", cache_type="earthquake")
 
 
-@mcp.tool()
-@cached("earthquake")
-async def get_felt_earthquakes() -> dict:
-    """
-    Get earthquakes that were felt by people in Indonesia.
-    
-    Returns a list of earthquakes with felt reports from the public.
-    """
-    try:
-        return await client.get("/earthquake/felt")
-    except Exception as e:
-        return {"error": format_error_message(e)}
-
-
-@mcp.tool()
-@cached("earthquake")
+@mcp.tool(annotations={"title": "Earthquakes near a point", **READ_ONLY})
 async def get_nearby_earthquakes(
-    latitude: float,
-    longitude: float,
-    radius_km: int = 100
-) -> dict:
+    latitude: Annotated[float, Field(description="Latitude in decimal degrees, e.g. -6.2088 for Jakarta", ge=-90, le=90)],
+    longitude: Annotated[float, Field(description="Longitude in decimal degrees, e.g. 106.8456 for Jakarta", ge=-180, le=180)],
+    radius_km: Annotated[int, Field(description="Search radius in kilometers", ge=1, le=500)] = 100,
+) -> ToolResponse:
+    """Find recent earthquakes within a radius of a coordinate, nearest first.
+
+    Searches BMKG's recent and felt lists only, so an empty result means
+    "none among the latest recorded", not "none ever". Each result includes
+    `distance_km`.
     """
-    Find earthquakes near specific coordinates.
-    
-    Args:
-        latitude: Latitude coordinate (e.g., -6.2088 for Jakarta)
-        longitude: Longitude coordinate (e.g., 106.8456 for Jakarta)
-        radius_km: Search radius in kilometers (default: 100, max: 500)
-    
-    Returns earthquakes within the specified radius.
-    """
-    if not validate_coordinates(latitude, longitude):
-        return {"error": "Koordinat tidak valid. Latitude: -90 sampai 90, Longitude: -180 sampai 180."}
-    
-    radius_km = validate_radius(radius_km)
-    
-    try:
-        return await client.get(
-            "/earthquake/nearby",
-            params={"lat": latitude, "lon": longitude, "radius_km": radius_km}
-        )
-    except Exception as e:
-        return {"error": format_error_message(e)}
+    return await call_api(
+        "get_nearby_earthquakes",
+        "/earthquake/nearby",
+        {"lat": latitude, "lon": longitude, "radius_km": radius_km},
+        cache_type="earthquake",
+    )

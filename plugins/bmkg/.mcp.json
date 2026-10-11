@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "bmkg": {
+      "type": "http",
+      "url": "https://mcp-bmkg.dhanypedia.com/mcp"
+    }
+  }
+}
