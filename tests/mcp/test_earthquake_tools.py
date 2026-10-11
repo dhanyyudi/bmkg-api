@@ -1,6 +1,7 @@
 """Tests for earthquake tools."""
 
 import pytest
+from unittest.mock import AsyncMock
 from mcp_server.tools.earthquake import (
     get_latest_earthquake,
     get_recent_earthquakes,

@@ -1,6 +1,7 @@
 """Tests for weather tools."""
 
 import pytest
+from unittest.mock import AsyncMock
 from mcp_server.tools.weather import get_weather_forecast, get_current_weather
 
 

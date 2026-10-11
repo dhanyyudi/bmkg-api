@@ -1,6 +1,7 @@
 """Tests for region tools."""
 
 import pytest
+from unittest.mock import AsyncMock
 from mcp_server.tools.region import (
     search_regions,
     get_provinces,

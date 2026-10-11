@@ -1,6 +1,7 @@
 """Tests for nowcast (weather warnings) tools."""
 
 import pytest
+from unittest.mock import AsyncMock
 from mcp_server.tools.nowcast import get_weather_warnings, check_location_warnings
 
 
