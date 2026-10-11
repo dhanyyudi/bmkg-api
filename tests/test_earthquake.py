@@ -33,6 +33,24 @@ class TestEarthquakeParser:
         # WITA is UTC+8, so 13:15:30 WITA = 05:15:30 UTC
         assert dt.hour == 5
     
+    def test_parse_datetime_indonesian_month(self):
+        """Test parsing Indonesian month abbreviations."""
+        assert parse_datetime("10 Okt 2026", "19:28:18 WIB").month == 10
+        assert parse_datetime("17 Agu 2026", "10:00:00 WIB").month == 8
+        assert parse_datetime("01 Mei 2026", "10:00:00 WIB").month == 5
+        assert parse_datetime("25 Des 2026", "10:00:00 WIB").month == 12
+
+    def test_parse_earthquake_prefers_iso_datetime(self, sample_autogempa):
+        """Test BMKG's ISO DateTime field wins over the localized date."""
+        gempa_data = dict(sample_autogempa["Infogempa"]["gempa"])
+        gempa_data["Tanggal"] = "10 Xyz 2026"
+        gempa_data["Jam"] = "19:28:18 WIB"
+        gempa_data["DateTime"] = "2026-10-10T12:28:18+00:00"
+
+        eq = parse_earthquake(gempa_data)
+
+        assert eq.occurred_at == datetime(2026, 10, 10, 12, 28, 18)
+
     def test_parse_coordinates_ls_bt(self):
         """Test parsing LS (South) and BT (East) coordinates."""
         lat, lon, lat_text, lon_text = parse_coordinates("6.89 LS", "109.67 BT")

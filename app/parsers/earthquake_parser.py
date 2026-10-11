@@ -1,6 +1,6 @@
 """Parser for BMKG earthquake JSON data."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from app.models.earthquake import Earthquake
 
 
@@ -14,9 +14,11 @@ def parse_datetime(date_str: str, time_str: str) -> datetime:
     Returns UTC datetime.
     """
     # Parse date
+    # BMKG uses Indonesian abbreviations (Mei, Agu, Okt, Des)
     months = {
         "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6,
-        "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12
+        "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12,
+        "Mei": 5, "Agu": 8, "Agt": 8, "Okt": 10, "Des": 12,
     }
     
     day, month_abbr, year = date_str.split()
@@ -92,7 +94,11 @@ def parse_earthquake(data: dict) -> Earthquake:
     # Parse datetime
     date_str = data.get("Tanggal", "")
     time_str = data.get("Jam", "")
-    dt = parse_datetime(date_str, time_str)
+    try:
+        # Prefer BMKG's ISO timestamp: it does not depend on month names
+        dt = datetime.fromisoformat(data["DateTime"]).astimezone(timezone.utc).replace(tzinfo=None)
+    except (KeyError, TypeError, ValueError):
+        dt = parse_datetime(date_str, time_str)
     
     # Parse coordinates
     lat_str = data.get("Lintang", "")
