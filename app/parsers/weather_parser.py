@@ -97,6 +97,10 @@ def parse_forecast_entry(entry_data: dict, timezone_offset: str = "+0700") -> Fo
         weather_name, weather_name_en = WEATHER_CODE_NAMES.get(
             weather_code, ("Berawan", "Mostly Cloudy")
         )
+        # BMKG sends its own wording, which is the authority: the table above
+        # is only a fallback and has disagreed with it (61 is light rain).
+        weather_name = entry_data.get("weather_desc") or weather_name
+        weather_name_en = entry_data.get("weather_desc_en") or weather_name_en
         
         # Determine if it's daytime (for icon selection)
         # Simple check: between 06:00 and 18:00
@@ -124,8 +128,8 @@ def parse_forecast_entry(entry_data: dict, timezone_offset: str = "+0700") -> Fo
         visibility = int(raw_visibility) if raw_visibility is not None else None
         visibility_text = get_visibility_text(visibility) if visibility is not None else None
         
-        # Get icon URL
-        icon_url = get_icon_url(weather_code, is_day)
+        # BMKG's own icon when present; file names contain spaces
+        icon_url = (entry_data.get("image") or "").replace(" ", "%20") or get_icon_url(weather_code, is_day)
         
         return ForecastEntry(
             local_datetime=local_datetime,

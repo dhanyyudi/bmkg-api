@@ -196,6 +196,30 @@ class TestParseForecastEntry:
         assert entry.visibility_text == "> 10 km"
         assert "berawan-tebal-am.svg" in entry.icon_url
     
+    def test_parse_entry_uses_bmkg_wording_and_icon(self):
+        """Parse entry that carries BMKG's own description and icon."""
+        data = {
+            "local_datetime": "2026-10-11 19:00:00",
+            "utc_datetime": "2026-10-11 12:00:00",
+            "t": 26,
+            "hu": 85,
+            "weather": 61,
+            "weather_desc": "Hujan Ringan",
+            "weather_desc_en": "Light Rain",
+            "image": "https://api-apps.bmkg.go.id/storage/icon/cuaca/hujan ringan-pm.svg",
+            "ws": 4.8,
+            "wd": "NE",
+            "wd_deg": 66,
+            "tcc": 90,
+            "vs": None,
+        }
+
+        entry = parse_forecast_entry(data)
+
+        assert entry.weather == "Hujan Ringan"
+        assert entry.weather_en == "Light Rain"
+        assert entry.icon_url == "https://api-apps.bmkg.go.id/storage/icon/cuaca/hujan%20ringan-pm.svg"
+
     def test_parse_entry_without_visibility(self):
         """Parse entry where BMKG sends null visibility."""
         data = {
