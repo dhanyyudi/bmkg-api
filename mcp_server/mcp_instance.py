@@ -2,6 +2,8 @@
 
 from fastmcp import FastMCP
 
+from mcp_server import __version__
+
 INSTRUCTIONS = """Weather forecasts, earthquakes, severe weather warnings and administrative \
 regions of Indonesia, from BMKG open data. All tools are read-only.
 
@@ -14,7 +16,11 @@ search_regions, or walk get_provinces → get_districts → get_subdistricts →
 Times in results are UTC unless a field name says local."""
 
 # Singleton FastMCP instance
-mcp = FastMCP("bmkg-api", instructions=INSTRUCTIONS)
+try:
+    mcp = FastMCP("bmkg-api", instructions=INSTRUCTIONS, version=__version__)
+except TypeError:
+    # Older FastMCP releases report their own version and take no override
+    mcp = FastMCP("bmkg-api", instructions=INSTRUCTIONS)
 
 # Every tool only reads public data from an external service.
 READ_ONLY = {"readOnlyHint": True, "idempotentHint": True, "openWorldHint": True}
