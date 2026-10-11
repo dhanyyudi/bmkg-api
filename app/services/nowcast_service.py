@@ -5,9 +5,9 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
-from app.cache import cache
+from app.cache import cache, single_flight
 from app.config import settings
-from app.http_client import get_http_client
+from app.http_client import UpstreamBudgetExceeded, get_http_client
 from app.models.nowcast import ActiveProvince, Warning, LocationCheckResult, NowcastDetailResponse
 from app.parsers.rss_parser import parse_rss_feed
 from app.parsers.cap_parser import parse_cap_xml
@@ -47,6 +47,8 @@ class NowcastService:
             response = await client.get(url)
             response.raise_for_status()
             return response.text
+        except UpstreamBudgetExceeded:
+            raise
         except Exception as e:
             raise Exception(f"Failed to fetch RSS feed: {str(e)}")
     
@@ -70,6 +72,8 @@ class NowcastService:
             response = await client.get(url)
             response.raise_for_status()
             return response.text
+        except UpstreamBudgetExceeded:
+            raise
         except Exception as e:
             raise Exception(f"Failed to fetch CAP XML for {alert_code}: {str(e)}")
     
@@ -96,14 +100,19 @@ class NowcastService:
             provinces = [ActiveProvince(**p) for p in cached]
             return provinces, True
         
-        # Fetch from BMKG
-        xml_content = await self._fetch_rss_feed(language)
-        provinces = parse_rss_feed(xml_content, language)
-        
-        # Store in cache (serialize to dict)
-        cache_data = [p.model_dump(mode='json') for p in provinces]
-        await cache.set(cache_key, cache_data, ttl)
-        
+        async with single_flight(cache_key):
+            cached = await cache.get(cache_key)
+            if cached is not None:
+                return [ActiveProvince(**p) for p in cached], True
+
+            # Fetch from BMKG
+            xml_content = await self._fetch_rss_feed(language)
+            provinces = parse_rss_feed(xml_content, language)
+
+            # Store in cache (serialize to dict)
+            cache_data = [p.model_dump(mode='json') for p in provinces]
+            await cache.set(cache_key, cache_data, ttl)
+
         return provinces, False
     
     async def _get_cached_or_fetch_cap(
@@ -130,14 +139,19 @@ class NowcastService:
             warning = Warning(**cached)
             return warning, True
         
-        # Fetch from BMKG
-        xml_content = await self._fetch_cap_xml(alert_code, language)
-        warning = parse_cap_xml(xml_content)
-        
-        if warning:
-            # Store in cache (serialize to dict)
-            await cache.set(cache_key, warning.model_dump(mode='json'), ttl)
-        
+        async with single_flight(cache_key):
+            cached = await cache.get(cache_key)
+            if cached is not None:
+                return Warning(**cached), True
+
+            # Fetch from BMKG
+            xml_content = await self._fetch_cap_xml(alert_code, language)
+            warning = parse_cap_xml(xml_content)
+
+            if warning:
+                # Store in cache (serialize to dict)
+                await cache.set(cache_key, warning.model_dump(mode='json'), ttl)
+
         return warning, False
     
     async def get_active_provinces(
@@ -179,12 +193,21 @@ class NowcastService:
         Returns:
             Tuple of (warning, region_name, from_cache, ttl)
         """
+        # Only codes from the active feed exist upstream. Checking the (cached)
+        # feed first keeps made-up codes from ever reaching BMKG.
+        provinces, _ = await self._get_cached_or_fetch_rss(
+            language,
+            settings.cache_ttl_nowcast,
+        )
+        if alert_code not in {p.code for p in provinces}:
+            return None, "Unknown", False, settings.cache_ttl_nowcast
+
         warning, from_cache = await self._get_cached_or_fetch_cap(
             alert_code,
             language,
             settings.cache_ttl_nowcast,
         )
-        
+
         # Get remaining TTL
         cache_key = self._make_cache_key("cap", {"code": alert_code, "lang": language})
         ttl = await cache.ttl(cache_key)
@@ -244,6 +267,9 @@ class NowcastService:
                     if location_lower in desc_lower or location_lower in headline_lower:
                         # Location found in this warning
                         matching_warnings.append(warning)
+            except UpstreamBudgetExceeded:
+                # An incomplete scan would read as "no warnings here"
+                raise
             except Exception:
                 # Skip failed fetches
                 continue

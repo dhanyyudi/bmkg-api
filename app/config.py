@@ -51,6 +51,9 @@ class Settings(BaseSettings):
         alias="BMKG_EARTHQUAKE_BASE_URL"
     )
     
+    # Upstream protection: max requests per minute sent to each BMKG host (0 disables the cap)
+    upstream_max_per_minute: int = Field(default=50, alias="UPSTREAM_MAX_PER_MINUTE")
+
     # Logging
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
     

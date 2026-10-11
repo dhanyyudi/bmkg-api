@@ -1,7 +1,9 @@
 """Cache wrapper with Redis and in-memory fallback."""
 
+import asyncio
 import json
 import time
+from contextlib import asynccontextmanager
 from typing import Any
 from app.config import settings
 
@@ -11,6 +13,28 @@ try:
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
+
+
+# key -> [lock, number of callers holding or waiting for it]
+_flights: dict[str, list] = {}
+
+
+@asynccontextmanager
+async def single_flight(key: str):
+    """Let one caller at a time refresh a cache key.
+
+    Concurrent misses for the same key would otherwise each call BMKG. Callers
+    must re-check the cache after entering.
+    """
+    entry = _flights.setdefault(key, [asyncio.Lock(), 0])
+    entry[1] += 1
+    try:
+        async with entry[0]:
+            yield
+    finally:
+        entry[1] -= 1
+        if entry[1] == 0:
+            _flights.pop(key, None)
 
 
 class DateTimeEncoder(json.JSONEncoder):

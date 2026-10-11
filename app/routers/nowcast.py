@@ -1,7 +1,7 @@
 """Nowcast (weather warnings) API routes."""
 
 from datetime import datetime, timezone
-from fastapi import APIRouter, Query, Request, Depends, HTTPException
+from fastapi import APIRouter, Path, Query, Request, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 from app.config import settings
@@ -79,11 +79,75 @@ async def get_active_provinces(
         )
 
 
+# Declared before /{alert_code}: otherwise "check" is taken for an alert code.
+@router.get("/check", response_model=APIResponse[LocationCheckResult])
+@limiter.limit(settings.rate_limit_anonymous)
+async def check_location_warnings(
+    request: Request,
+    location: str = Query(..., description="Kecamatan/district name to check (e.g., 'Wiradesa', 'Bojonegara')", max_length=100),
+    lang: str = Query("id", description="Language code (id/en)", pattern="^(id|en)$"),
+):
+    """Check weather warnings for a specific location.
+    
+    Searches all active weather warnings for mentions of the given location.
+    Performs case-insensitive matching in warning descriptions.
+    
+    **Query Parameters:**
+    - `location`: Location name (kecamatan/district) to search for. **Required**
+    - `lang`: Language code - "id" (Indonesian) or "en" (English). Default: "id"
+    
+    **Example:**
+    - `/v1/nowcast/check?location=Bojonegara`
+    - `/v1/nowcast/check?location=Wiradesa&lang=id`
+    """
+    if not location or not location.strip():
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": "bad_request",
+                "message": "Location parameter is required",
+                "status": 400,
+            },
+        )
+    
+    try:
+        result, from_cache, ttl = await nowcast_service.check_location(location.strip(), lang)
+        
+        response_data = {
+            "data": result.model_dump(mode='json'),
+            "meta": {
+                "location": location.strip(),
+                "checked_provinces": len(result.warnings),
+                "fetched_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "cache_ttl": ttl,
+                "language": lang,
+            },
+            "attribution": "BMKG (Badan Meteorologi, Klimatologi, dan Geofisika)",
+        }
+        
+        headers = {
+            "X-Cache": "HIT" if from_cache else "MISS",
+            "X-Cache-TTL": str(ttl),
+        }
+        
+        return JSONResponse(content=response_data, headers=headers)
+        
+    except Exception as e:
+        return JSONResponse(
+            status_code=502,
+            content={
+                "error": "upstream_error",
+                "message": f"Failed to check location warnings: {str(e)}",
+                "status": 502,
+            },
+        )
+
+
 @router.get("/{alert_code}", response_model=APIResponse[NowcastDetailResponse])
 @limiter.limit(settings.rate_limit_anonymous)
 async def get_warning_detail(
     request: Request,
-    alert_code: str,
+    alert_code: str = Path(..., description="Alert code from the active warnings list", pattern="^[A-Za-z0-9_-]{1,40}$"),
     lang: str = Query("id", description="Language code (id/en)", pattern="^(id|en)$"),
 ):
     """Get detailed weather warning for an alert.
@@ -139,69 +203,6 @@ async def get_warning_detail(
             content={
                 "error": "upstream_error",
                 "message": f"Failed to fetch warning detail: {str(e)}",
-                "status": 502,
-            },
-        )
-
-
-@router.get("/check", response_model=APIResponse[LocationCheckResult])
-@limiter.limit(settings.rate_limit_anonymous)
-async def check_location_warnings(
-    request: Request,
-    location: str = Query(..., description="Kecamatan/district name to check (e.g., 'Wiradesa', 'Bojonegara')"),
-    lang: str = Query("id", description="Language code (id/en)", pattern="^(id|en)$"),
-):
-    """Check weather warnings for a specific location.
-    
-    Searches all active weather warnings for mentions of the given location.
-    Performs case-insensitive matching in warning descriptions.
-    
-    **Query Parameters:**
-    - `location`: Location name (kecamatan/district) to search for. **Required**
-    - `lang`: Language code - "id" (Indonesian) or "en" (English). Default: "id"
-    
-    **Example:**
-    - `/v1/nowcast/check?location=Bojonegara`
-    - `/v1/nowcast/check?location=Wiradesa&lang=id`
-    """
-    if not location or not location.strip():
-        return JSONResponse(
-            status_code=400,
-            content={
-                "error": "bad_request",
-                "message": "Location parameter is required",
-                "status": 400,
-            },
-        )
-    
-    try:
-        result, from_cache, ttl = await nowcast_service.check_location(location.strip(), lang)
-        
-        response_data = {
-            "data": result.model_dump(mode='json'),
-            "meta": {
-                "location": location.strip(),
-                "checked_provinces": len(result.warnings),
-                "fetched_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-                "cache_ttl": ttl,
-                "language": lang,
-            },
-            "attribution": "BMKG (Badan Meteorologi, Klimatologi, dan Geofisika)",
-        }
-        
-        headers = {
-            "X-Cache": "HIT" if from_cache else "MISS",
-            "X-Cache-TTL": str(ttl),
-        }
-        
-        return JSONResponse(content=response_data, headers=headers)
-        
-    except Exception as e:
-        return JSONResponse(
-            status_code=502,
-            content={
-                "error": "upstream_error",
-                "message": f"Failed to check location warnings: {str(e)}",
                 "status": 502,
             },
         )

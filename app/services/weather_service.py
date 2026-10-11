@@ -3,13 +3,21 @@
 import hashlib
 import json
 from datetime import datetime, timezone
+import re
 from typing import Any
 
-from app.cache import cache
+import httpx
+
+from app.cache import cache, single_flight
 from app.config import settings
 from app.http_client import get_http_client
 from app.models.weather import WeatherForecast, CurrentWeather, ForecastEntry
 from app.parsers.weather_parser import parse_weather_forecast, find_current_forecast
+
+ADM4_PATTERN = re.compile(r"\d{2}\.\d{2}\.\d{2}\.\d{4}")
+
+# Cached in place of a forecast when BMKG answers 404 for a code
+NOT_FOUND = {"not_found": True}
 
 
 class WeatherService:
@@ -49,6 +57,8 @@ class WeatherService:
             response = await client.get(url, params={"adm4": adm4_code})
             response.raise_for_status()
             return response.json()
+        except httpx.HTTPStatusError:
+            raise
         except Exception as e:
             raise Exception(f"Failed to fetch from BMKG: {str(e)}")
     
@@ -69,15 +79,34 @@ class WeatherService:
         # Try cache first
         cached = await cache.get(cache_key)
         if cached is not None:
-            return cached, True
-        
-        # Fetch from BMKG
-        data = await self._fetch_from_bmkg(adm4_code)
-        
-        # Store in cache
-        await cache.set(cache_key, data, settings.cache_ttl_weather)
-        
+            return self._raise_if_not_found(cached), True
+
+        async with single_flight(cache_key):
+            cached = await cache.get(cache_key)
+            if cached is not None:
+                return self._raise_if_not_found(cached), True
+
+            # Fetch from BMKG
+            try:
+                data = await self._fetch_from_bmkg(adm4_code)
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 404:
+                    # Remember unknown codes, so repeats do not reach BMKG again
+                    await cache.set(cache_key, NOT_FOUND, settings.cache_ttl_weather)
+                    self._raise_if_not_found(NOT_FOUND)
+                raise Exception(f"Failed to fetch from BMKG: {str(e)}")
+
+            # Store in cache
+            await cache.set(cache_key, data, settings.cache_ttl_weather)
+
         return data, False
+
+    @staticmethod
+    def _raise_if_not_found(data: dict[str, Any]) -> dict[str, Any]:
+        """Return cached data, or raise if it is the marker for an unknown code."""
+        if data == NOT_FOUND:
+            raise Exception("BMKG has no forecast for this code (404 Not Found)")
+        return data
     
     async def get_forecast(self, adm4_code: str) -> tuple[WeatherForecast, bool, int]:
         """Get weather forecast for an area.
@@ -96,16 +125,10 @@ class WeatherService:
         if not adm4_code or not isinstance(adm4_code, str):
             raise ValueError("Invalid ADM4 code")
         
-        parts = adm4_code.split(".")
-        if len(parts) != 4:
-            raise ValueError("ADM4 code must have 4 parts (e.g., '33.26.16.1001')")
-        
-        try:
-            # Verify all parts are numeric
-            for part in parts:
-                int(part)
-        except ValueError:
-            raise ValueError("ADM4 code parts must be numeric")
+        # One canonical spelling per location: anything else would be passed
+        # to BMKG and cached under its own key.
+        if not ADM4_PATTERN.fullmatch(adm4_code):
+            raise ValueError("ADM4 code must look like '33.26.16.1001' (2.2.2.4 digits)")
         
         # Fetch data
         data, from_cache = await self._get_cached_or_fetch(adm4_code)

@@ -1,7 +1,39 @@
 """HTTP client with retry and timeout configuration."""
 
+import time
+from collections import deque
+
 import httpx
 from typing import Any
+
+from app.config import settings
+
+
+class UpstreamBudgetExceeded(Exception):
+    """Raised instead of calling BMKG once the per-minute budget is spent."""
+
+
+class RequestBudget:
+    """Cap on requests per minute sent to one upstream host.
+
+    Cache misses are driven by clients, and enough distinct requests would
+    otherwise get this server's IP rate limited or blocked by BMKG.
+    """
+
+    def __init__(self, per_minute: int):
+        self.per_minute = per_minute
+        self._sent: deque[float] = deque()
+
+    def acquire(self) -> None:
+        """Record one upstream request, or raise if the budget is spent."""
+        if self.per_minute <= 0:
+            return
+        now = time.monotonic()
+        while self._sent and now - self._sent[0] >= 60:
+            self._sent.popleft()
+        if len(self._sent) >= self.per_minute:
+            raise UpstreamBudgetExceeded("BMKG request budget exhausted, try again shortly")
+        self._sent.append(now)
 
 
 class HTTPClient:
@@ -36,6 +68,8 @@ class HTTPClient:
             transport=transport,
             follow_redirects=True,
         )
+        # BMKG serves weather, earthquakes and warnings from separate hosts
+        self._budgets: dict[str, RequestBudget] = {}
     
     async def get(
         self,
@@ -57,6 +91,10 @@ class HTTPClient:
             httpx.HTTPError: On HTTP errors
             httpx.TimeoutException: On timeout
         """
+        host = httpx.URL(url).host
+        if host not in self._budgets:
+            self._budgets[host] = RequestBudget(settings.upstream_max_per_minute)
+        self._budgets[host].acquire()
         return await self.client.get(url, params=params, headers=headers)
     
     async def close(self) -> None:

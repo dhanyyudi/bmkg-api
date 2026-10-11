@@ -5,6 +5,8 @@ Since this API is designed for self-hosting, we use simple anonymous
 rate limiting only.
 """
 
+import ipaddress
+
 from fastapi import Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -20,8 +22,18 @@ def get_client_ip(request: Request) -> str:
     if settings.client_ip_header:
         forwarded = request.headers.get(settings.client_ip_header)
         if forwarded:
-            return forwarded.split(",")[0].strip()
-    return get_remote_address(request)
+            return _rate_limit_key(forwarded.split(",")[0].strip())
+    return _rate_limit_key(get_remote_address(request))
+
+
+def _rate_limit_key(ip: str) -> str:
+    """Count an IPv6 /64 as one client: a single user controls the whole prefix."""
+    try:
+        if ipaddress.ip_address(ip).version == 6:
+            return str(ipaddress.ip_network(f"{ip}/64", strict=False))
+    except ValueError:
+        pass
+    return ip
 
 
 # Initialize rate limiter with IP-based keying

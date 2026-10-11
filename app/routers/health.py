@@ -46,7 +46,7 @@ router = APIRouter(
                     "example": {
                         "status": "healthy",
                         "timestamp": "2026-02-16T15:30:00+07:00",
-                        "version": "1.1.0",
+                        "version": "1.1.1",
                         "cache": "healthy (redis)",
                     }
                 }
@@ -59,7 +59,7 @@ router = APIRouter(
                     "example": {
                         "status": "degraded",
                         "timestamp": "2026-02-16T15:30:00+07:00",
-                        "version": "1.1.0",
+                        "version": "1.1.1",
                         "cache": "unhealthy",
                     }
                 }

@@ -6,7 +6,7 @@ import math
 from datetime import datetime, timezone
 from typing import Any
 
-from app.cache import cache
+from app.cache import cache, single_flight
 from app.config import settings
 from app.http_client import get_http_client
 from app.models.earthquake import Earthquake, EarthquakeWithDistance
@@ -97,12 +97,17 @@ class EarthquakeService:
         if cached is not None:
             return cached, True
         
-        # Fetch from BMKG
-        data = await self._fetch_from_bmkg(endpoint)
-        
-        # Store in cache
-        await cache.set(cache_key, data, ttl)
-        
+        async with single_flight(cache_key):
+            cached = await cache.get(cache_key)
+            if cached is not None:
+                return cached, True
+
+            # Fetch from BMKG
+            data = await self._fetch_from_bmkg(endpoint)
+
+            # Store in cache
+            await cache.set(cache_key, data, ttl)
+
         return data, False
     
     async def get_latest(self) -> tuple[Earthquake, bool, int]:

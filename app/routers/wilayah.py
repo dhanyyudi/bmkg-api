@@ -219,7 +219,7 @@ async def get_villages(
 @limiter.limit(settings.rate_limit_anonymous)
 async def search_wilayah(
     request: Request,
-    q: str = Query(..., description="Search query (min 2 characters)", min_length=2),
+    q: str = Query(..., description="Search query (min 2 characters)", min_length=2, max_length=100),
     limit: int = Query(50, description="Maximum results to return", ge=1, le=100),
 ):
     """Search wilayah by name.
