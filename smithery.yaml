@@ -9,7 +9,7 @@ startCommand:
     properties: {}
   commandFunction: |
     (config) => ({
-      url: "https://mcp-bmkg.dhanypedia.it.com/mcp"
+      url: "https://mcp-bmkg.dhanypedia.com/mcp"
     })
 
 buildCommand: pip install -e .
@@ -20,7 +20,7 @@ categories:
   - government
   - education
 
-homepage: https://bmkg-restapi.vercel.app
+homepage: https://bmkg-api.dhanypedia.com
 repository:
   type: git
   url: https://github.com/dhanyyudi/bmkg-api

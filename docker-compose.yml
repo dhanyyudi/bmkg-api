@@ -5,15 +5,21 @@ services:
     container_name: bmkg-api-server
     build: .
     restart: unless-stopped
+    # Cap resources so a traffic spike cannot starve other services on the host
+    cpus: 1.0
+    mem_limit: 512m
     # NO ports exposed to host — accessed via NPM/Cloudflare Tunnel
     environment:
       - REDIS_URL=redis://bmkg-api-redis:6379
       - RATE_LIMIT_ANONYMOUS=30/minute
       - RATE_LIMIT_AUTHENTICATED=120/minute
+      # Rate limit per visitor, not per proxy. Remove if not behind Cloudflare.
+      - CLIENT_IP_HEADER=CF-Connecting-IP
       - CACHE_TTL_NOWCAST=120
       - CACHE_TTL_WEATHER=900
       - CACHE_TTL_EARTHQUAKE_LATEST=60
       - CACHE_TTL_EARTHQUAKE_LIST=300
+      - CACHE_TTL_WILAYAH=86400
       - LOG_LEVEL=INFO
     volumes:
       - ./data:/app/data
@@ -32,6 +38,8 @@ services:
     image: redis:7-alpine
     container_name: bmkg-api-redis
     restart: unless-stopped
+    # Cache only: bound memory and evict least recently used keys
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
     volumes:
       - ./data/redis:/data
     networks:

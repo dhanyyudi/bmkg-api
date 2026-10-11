@@ -41,7 +41,7 @@ bmkg-mcp-http = "mcp_server.http_server:main"
 
 [project.urls]
 Homepage = "https://github.com/dhanyyudi/bmkg-api"
-Documentation = "https://bmkg-restapi.vercel.app/docs"
+Documentation = "https://bmkg-api.dhanypedia.com/docs"
 Repository = "https://github.com/dhanyyudi/bmkg-api"
 Issues = "https://github.com/dhanyyudi/bmkg-api/issues"
 

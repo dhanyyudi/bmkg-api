@@ -23,12 +23,16 @@ class Settings(BaseSettings):
     # Rate Limiting
     rate_limit_anonymous: str = Field(default="30/minute", alias="RATE_LIMIT_ANONYMOUS")
     rate_limit_authenticated: str = Field(default="120/minute", alias="RATE_LIMIT_AUTHENTICATED")
+    # Header carrying the real client IP when behind a trusted proxy (e.g. "CF-Connecting-IP").
+    # Leave empty unless every request arrives through that proxy: clients can forge it otherwise.
+    client_ip_header: str = Field(default="", alias="CLIENT_IP_HEADER")
     
     # Cache TTL (seconds)
     cache_ttl_nowcast: int = Field(default=120, alias="CACHE_TTL_NOWCAST")
     cache_ttl_weather: int = Field(default=900, alias="CACHE_TTL_WEATHER")
     cache_ttl_earthquake_latest: int = Field(default=60, alias="CACHE_TTL_EARTHQUAKE_LATEST")
     cache_ttl_earthquake_list: int = Field(default=300, alias="CACHE_TTL_EARTHQUAKE_LIST")
+    cache_ttl_wilayah: int = Field(default=86400, alias="CACHE_TTL_WILAYAH")
     
     # API Keys (comma-separated)
     api_keys: str = Field(default="", alias="API_KEYS")

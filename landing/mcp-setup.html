@@ -7,8 +7,8 @@
     copySuccess: false,
     copyToClipboard(type) {
       const configs = {
-        claudeHttp: JSON.stringify({ mcpServers: { 'bmkg-api': { url: 'https://mcp-bmkg.dhanypedia.it.com/mcp' } } }, null, 2),
-        vscodeHttp: JSON.stringify({ mcpServers: { 'bmkg-api': { url: 'https://mcp-bmkg.dhanypedia.it.com/mcp', disabled: false, autoApprove: [] } } }, null, 2)
+        claudeHttp: JSON.stringify({ mcpServers: { 'bmkg-api': { url: 'https://mcp-bmkg.dhanypedia.com/mcp' } } }, null, 2),
+        vscodeHttp: JSON.stringify({ mcpServers: { 'bmkg-api': { url: 'https://mcp-bmkg.dhanypedia.com/mcp', disabled: false, autoApprove: [] } } }, null, 2)
       };
       navigator.clipboard.writeText(configs[type] || type);
       this.copySuccess = true;
@@ -164,9 +164,9 @@
             <div class="bg-white/50 dark:bg-gray-900/50 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
               <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Endpoint URL:</p>
               <div class="bg-gray-100 dark:bg-gray-900 rounded-lg p-3 relative group">
-                <code class="text-sm text-blue-600 dark:text-blue-400 font-mono break-all">https://mcp-bmkg.dhanypedia.it.com/mcp</code>
+                <code class="text-sm text-blue-600 dark:text-blue-400 font-mono break-all">https://mcp-bmkg.dhanypedia.com/mcp</code>
                 <button
-                  @click="navigator.clipboard.writeText('https://mcp-bmkg.dhanypedia.it.com/mcp'); copySuccess = true; setTimeout(() => copySuccess = false, 2000)"
+                  @click="navigator.clipboard.writeText('https://mcp-bmkg.dhanypedia.com/mcp'); copySuccess = true; setTimeout(() => copySuccess = false, 2000)"
                   class="absolute top-2 right-2 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-200 dark:bg-gray-700 rounded"
                   title="Copy"
                 >
@@ -360,7 +360,7 @@
                 <pre><code class="language-json">{
   "mcpServers": {
     "bmkg-api": {
-      "url": "https://mcp-bmkg.dhanypedia.it.com/mcp"
+      "url": "https://mcp-bmkg.dhanypedia.com/mcp"
     }
   }
 }</code></pre>
@@ -407,7 +407,7 @@
                 <ul class="space-y-2 text-sm">
                   <li><strong>Name:</strong> <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">bmkg-api</code></li>
                   <li><strong>Type:</strong> <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">url</code></li>
-                  <li><strong>URL:</strong> <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded break-all">https://mcp-bmkg.dhanypedia.it.com/mcp</code></li>
+                  <li><strong>URL:</strong> <code class="bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded break-all">https://mcp-bmkg.dhanypedia.com/mcp</code></li>
                 </ul>
               </div>
             </div>
@@ -443,7 +443,7 @@
                 <pre><code class="language-json">{
   "mcpServers": {
     "bmkg-api": {
-      "url": "https://mcp-bmkg.dhanypedia.it.com/mcp",
+      "url": "https://mcp-bmkg.dhanypedia.com/mcp",
       "disabled": false,
       "autoApprove": []
     }
@@ -863,7 +863,7 @@
             </h3>
             <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">Solution: Check your internet connection and verify the endpoint URL</p>
             <div class="bg-gray-100 dark:bg-gray-900 rounded-lg p-3 mb-2">
-              <code class="text-sm text-gray-800 dark:text-green-400 font-mono">curl https://mcp-bmkg.dhanypedia.it.com/mcp</code>
+              <code class="text-sm text-gray-800 dark:text-green-400 font-mono">curl https://mcp-bmkg.dhanypedia.com/mcp</code>
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400">Should return JSON response with server info</p>
           </div>
@@ -913,7 +913,7 @@
           <a href="/" class="text-primary-600 hover:underline">API Documentation</a>
         </p>
         <p class="text-xs text-gray-400 dark:text-gray-500">
-          HTTP Endpoint: <code class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">https://mcp-bmkg.dhanypedia.it.com/mcp</code>
+          HTTP Endpoint: <code class="bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">https://mcp-bmkg.dhanypedia.com/mcp</code>
         </p>
       </div>
     </footer>

@@ -11,9 +11,22 @@ from slowapi.util import get_remote_address
 from app.config import settings
 
 
+def get_client_ip(request: Request) -> str:
+    """Return the client IP used as the rate limit key.
+
+    Behind a proxy the socket address is the proxy's, which would put every
+    client in one bucket, so read the configured header first.
+    """
+    if settings.client_ip_header:
+        forwarded = request.headers.get(settings.client_ip_header)
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+    return get_remote_address(request)
+
+
 # Initialize rate limiter with IP-based keying
 limiter = Limiter(
-    key_func=get_remote_address,
+    key_func=get_client_ip,
     default_limits=[settings.rate_limit_anonymous],
     headers_enabled=True,
 )

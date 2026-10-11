@@ -15,7 +15,7 @@
 
 Free REST API for Indonesian weather forecasts, earthquake data, weather warnings, and region lookup from BMKG.
 
-**🌐 Demo:** [https://bmkg-restapi.vercel.app](https://bmkg-restapi.vercel.app)
+**🌐 Demo:** [https://bmkg-api.dhanypedia.com](https://bmkg-api.dhanypedia.com)
 
 ### ⚠️ Important Notice
 
@@ -41,19 +41,19 @@ This is a **demo/public instance** with rate limits (30 requests/minute) to ensu
 
 ```bash
 # Latest earthquake
-curl https://bmkg-restapi.vercel.app/v1/earthquake/latest
+curl https://bmkg-api.dhanypedia.com/v1/earthquake/latest
 
 # Weather forecast for Pejaten Barat, Pasar Minggu, Jakarta Selatan
-curl https://bmkg-restapi.vercel.app/v1/weather/31.74.04.1006
+curl https://bmkg-api.dhanypedia.com/v1/weather/31.74.04.1006
 
 # Current weather
-curl https://bmkg-restapi.vercel.app/v1/weather/31.74.04.1006/current
+curl https://bmkg-api.dhanypedia.com/v1/weather/31.74.04.1006/current
 
 # Active weather warnings
-curl https://bmkg-restapi.vercel.app/v1/nowcast
+curl https://bmkg-api.dhanypedia.com/v1/nowcast
 
 # Search regions
-curl https://bmkg-restapi.vercel.app/v1/wilayah/search?q=tebet
+curl https://bmkg-api.dhanypedia.com/v1/wilayah/search?q=tebet
 ```
 
 ### API Endpoints
@@ -88,7 +88,7 @@ curl https://bmkg-restapi.vercel.app/v1/wilayah/search?q=tebet
 | `GET /v1/wilayah/villages?subdistrict_code=` | List villages |
 | `GET /v1/wilayah/search?q={query}` | Search regions |
 
-**Full documentation:** [https://bmkg-restapi.vercel.app/docs](https://bmkg-restapi.vercel.app/docs)
+**Full documentation:** [https://bmkg-api.dhanypedia.com/docs](https://bmkg-api.dhanypedia.com/docs)
 
 ### 🤖 MCP Server (for AI Assistants)
 
@@ -126,7 +126,7 @@ For MCP clients that support Streamable HTTP transport:
 
 **Claude Code:**
 ```bash
-claude mcp add --transport http bmkg-api https://mcp-bmkg.dhanypedia.it.com/mcp
+claude mcp add --transport http bmkg-api https://mcp-bmkg.dhanypedia.com/mcp
 ```
 
 **Claude Desktop (Settings → MCP):**
@@ -134,7 +134,7 @@ claude mcp add --transport http bmkg-api https://mcp-bmkg.dhanypedia.it.com/mcp
 {
   "mcpServers": {
     "bmkg-api": {
-      "url": "https://mcp-bmkg.dhanypedia.it.com/mcp"
+      "url": "https://mcp-bmkg.dhanypedia.com/mcp"
     }
   }
 }
@@ -144,14 +144,14 @@ claude mcp add --transport http bmkg-api https://mcp-bmkg.dhanypedia.it.com/mcp
 1. Click "Add New MCP Server"
 2. Name: `bmkg-api`
 3. Type: `http`
-4. URL: `https://mcp-bmkg.dhanypedia.it.com/mcp`
+4. URL: `https://mcp-bmkg.dhanypedia.com/mcp`
 
 **VS Code (Cline/Roo Code):**
 ```json
 {
   "mcpServers": {
     "bmkg-api": {
-      "url": "https://mcp-bmkg.dhanypedia.it.com/mcp",
+      "url": "https://mcp-bmkg.dhanypedia.com/mcp",
       "disabled": false,
       "autoApprove": []
     }
@@ -163,7 +163,7 @@ claude mcp add --transport http bmkg-api https://mcp-bmkg.dhanypedia.it.com/mcp
 1. Open Cascade → MCP Servers
 2. Click "+ Add Custom Server"
 3. Select "HTTP Transport"
-4. Enter URL: `https://mcp-bmkg.dhanypedia.it.com/mcp`
+4. Enter URL: `https://mcp-bmkg.dhanypedia.com/mcp`
 
 ---
 
@@ -267,15 +267,11 @@ source venv/bin/activate
 make dev     # starts server on http://localhost:8099
 ```
 
-#### Option 3: Vercel (Serverless)
-
-Deploy to Vercel with one click — the `api/index.py` and `vercel.json` are pre-configured.
-
-See [Self-Hosting Guide](https://bmkg-restapi.vercel.app/self-host.html) for detailed instructions.
+See [Self-Hosting Guide](https://bmkg-api.dhanypedia.com/self-host.html) for detailed instructions.
 
 ### Code Examples
 
-Available on the [landing page](https://bmkg-restapi.vercel.app) for: **cURL**, **JavaScript**, **Python**, **Go**, **PHP**, **Ruby**, and **Dart (Flutter)**.
+Available on the [landing page](https://bmkg-api.dhanypedia.com) for: **cURL**, **JavaScript**, **Python**, **Go**, **PHP**, **Ruby**, and **Dart (Flutter)**.
 
 ---
 
@@ -284,7 +280,7 @@ Available on the [landing page](https://bmkg-restapi.vercel.app) for: **cURL**, 
 
 API REST gratis untuk prakiraan cuaca, data gempa bumi, peringatan cuaca, dan pencarian wilayah Indonesia dari BMKG.
 
-**🌐 Demo:** [https://bmkg-restapi.vercel.app](https://bmkg-restapi.vercel.app)
+**🌐 Demo:** [https://bmkg-api.dhanypedia.com](https://bmkg-api.dhanypedia.com)
 
 ### ⚠️ Pemberitahuan Penting
 
@@ -310,19 +306,19 @@ Ini adalah **instance demo/publik** dengan batasan rate limit (30 request/menit)
 
 ```bash
 # Gempa terbaru
-curl https://bmkg-restapi.vercel.app/v1/earthquake/latest
+curl https://bmkg-api.dhanypedia.com/v1/earthquake/latest
 
 # Prakiraan cuaca Pejaten Barat, Pasar Minggu, Jakarta Selatan
-curl https://bmkg-restapi.vercel.app/v1/weather/31.74.04.1006
+curl https://bmkg-api.dhanypedia.com/v1/weather/31.74.04.1006
 
 # Cuaca saat ini
-curl https://bmkg-restapi.vercel.app/v1/weather/31.74.04.1006/current
+curl https://bmkg-api.dhanypedia.com/v1/weather/31.74.04.1006/current
 
 # Peringatan cuaca aktif
-curl https://bmkg-restapi.vercel.app/v1/nowcast
+curl https://bmkg-api.dhanypedia.com/v1/nowcast
 
 # Cari wilayah
-curl https://bmkg-restapi.vercel.app/v1/wilayah/search?q=wiradesa
+curl https://bmkg-api.dhanypedia.com/v1/wilayah/search?q=wiradesa
 ```
 
 ### Endpoint API
@@ -357,7 +353,7 @@ curl https://bmkg-restapi.vercel.app/v1/wilayah/search?q=wiradesa
 | `GET /v1/wilayah/villages?subdistrict_code=` | Daftar desa/kelurahan |
 | `GET /v1/wilayah/search?q={query}` | Cari wilayah |
 
-**Dokumentasi lengkap:** [https://bmkg-restapi.vercel.app/docs](https://bmkg-restapi.vercel.app/docs)
+**Dokumentasi lengkap:** [https://bmkg-api.dhanypedia.com/docs](https://bmkg-api.dhanypedia.com/docs)
 
 ### 🤖 MCP Server (untuk AI Assistants)
 
@@ -467,15 +463,11 @@ source venv/bin/activate
 make dev     # jalankan server di http://localhost:8099
 ```
 
-#### Opsi 3: Vercel (Serverless)
-
-Deploy ke Vercel — `api/index.py` dan `vercel.json` sudah dikonfigurasi.
-
-Lihat [Panduan Self-Hosting](https://bmkg-restapi.vercel.app/self-host.html) untuk detail.
+Lihat [Panduan Self-Hosting](https://bmkg-api.dhanypedia.com/self-host.html) untuk detail.
 
 ### Contoh Kode
 
-Tersedia di [halaman utama](https://bmkg-restapi.vercel.app) untuk: **cURL**, **JavaScript**, **Python**, **Go**, **PHP**, **Ruby**, dan **Dart (Flutter)**.
+Tersedia di [halaman utama](https://bmkg-api.dhanypedia.com) untuk: **cURL**, **JavaScript**, **Python**, **Go**, **PHP**, **Ruby**, dan **Dart (Flutter)**.
 
 ---
 

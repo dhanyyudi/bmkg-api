@@ -1,8 +1,10 @@
 import httpx
 import logging
+import os
 from typing import Optional
 
-BASE_URL = "https://bmkg-restapi.vercel.app/v1"
+# Point this at your own instance when self-hosting the API.
+BASE_URL = os.environ.get("BMKG_API_BASE_URL", "https://bmkg-api.dhanypedia.com/v1")
 TIMEOUT = 30.0
 
 logger = logging.getLogger("mcp_server.client")

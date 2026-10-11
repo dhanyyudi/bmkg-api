@@ -3,7 +3,7 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -12,6 +12,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
 from app.cache import cache
+from app.cache_headers import cache_control_for
 from app.dependencies import limiter
 from app.http_client import close_http_client
 from app.routers import earthquake, health, nowcast, weather, wilayah
@@ -118,7 +119,7 @@ app = FastAPI(
         "url": "https://opensource.org/licenses/MIT",
     },
     servers=[
-        {"url": "https://bmkg-restapi.vercel.app", "description": "Production (Vercel)"},
+        {"url": "https://bmkg-api.dhanypedia.com", "description": "Public demo"},
         {"url": "http://localhost:8099", "description": "Local development"},
     ],
 )
@@ -131,10 +132,29 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["GET", "OPTIONS"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def add_cache_control(request: Request, call_next):
+    """Mark API responses as cacheable so a CDN can serve repeat requests."""
+    response = await call_next(request)
+    if request.method == "GET" and "cache-control" not in response.headers:
+        cache_control = cache_control_for(
+            request.url.path,
+            response.status_code,
+            response.headers.get("X-Cache-TTL"),
+        )
+        if cache_control:
+            response.headers["Cache-Control"] = cache_control
+            # CORSMiddleware only answers requests that send Origin. A CDN copy
+            # made from a non-browser request would then break browser clients.
+            response.headers.setdefault("Access-Control-Allow-Origin", "*")
+    return response
+
 
 # Include API routers (MUST be before static files)
 app.include_router(health.router)
