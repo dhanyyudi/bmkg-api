@@ -1,3 +1,18 @@
+# Stage 1: build the website (web/) into static files
+FROM node:22-slim AS web
+
+WORKDIR /src/web
+
+# Copy manifests first for better caching
+COPY web/package.json web/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+
+COPY web/ ./
+# The build writes to ../landing
+RUN npm run build
+
+
+# Stage 2: the API, serving the built website
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -13,7 +28,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY app/ ./app/
-COPY landing/ ./landing/
+COPY --from=web /src/landing/ ./landing/
 # MCP server ships in the same image; run it with: python -m mcp_server.http_server
 COPY mcp_server/ ./mcp_server/
 

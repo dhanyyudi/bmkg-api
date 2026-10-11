@@ -23,7 +23,6 @@ services:
       - LOG_LEVEL=INFO
     volumes:
       - ./data:/app/data
-      - ./landing:/app/landing
     depends_on:
       - bmkg-api-redis
     networks:

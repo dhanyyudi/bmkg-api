@@ -31,7 +31,7 @@ This is a **demo/public instance** with rate limits (30 requests/minute) to ensu
 - 🌤️ **Weather Forecast** — 3-day forecasts & current weather for any kelurahan/desa in Indonesia
 - ⚠️ **Weather Warnings (Nowcast)** — Real-time severe weather alerts with affected area polygons
 - 📍 **Region Lookup** — Indonesian provinces, districts, subdistricts, villages, plus search
-- 📊 **Auto-generated Docs** — Interactive API documentation at `/docs`
+- 📊 **Docs** — Interactive documentation at `/docs`, generated OpenAPI reference at `/redoc`
 - ⚡ **Caching** — Fast responses with in-memory cache (configurable TTL)
 - 🌐 **CORS Enabled** — Use from any frontend
 - 🔓 **No API Key Required** — Simple, anonymous access
@@ -279,6 +279,7 @@ cd bmkg-api
 make setup
 source venv/bin/activate
 make dev     # starts server on http://localhost:8099
+make web     # builds the website (web/, needs Node 22+) into ./landing
 ```
 
 See [Self-Hosting Guide](https://bmkg-api.dhanypedia.com/self-host.html) for detailed instructions.
@@ -308,7 +309,7 @@ Ini adalah **instance demo/publik** dengan batasan rate limit (30 request/menit)
 - 🌤️ **Prakiraan Cuaca** — 3 hari & cuaca saat ini untuk lokasi mana pun di Indonesia
 - ⚠️ **Peringatan Cuaca (Nowcast)** — Peringatan dini real-time dengan poligon area terdampak
 - 📍 **Pencarian Wilayah** — Provinsi, kabupaten, kecamatan, desa, plus pencarian
-- 📊 **Dokumentasi Auto** — Dokumentasi API interaktif di `/docs`
+- 📊 **Dokumentasi** — Dokumentasi interaktif di `/docs`, referensi OpenAPI di `/redoc`
 - ⚡ **Caching** — Response cepat dengan cache lokal (TTL bisa dikonfigurasi)
 - 🌐 **CORS Enabled** — Bisa dipakai dari frontend mana saja
 - 🔓 **Tanpa API Key** — Akses sederhana dan anonim
@@ -491,6 +492,7 @@ cd bmkg-api
 make setup
 source venv/bin/activate
 make dev     # jalankan server di http://localhost:8099
+make web     # build situs (web/, butuh Node 22+) ke ./landing
 ```
 
 Lihat [Panduan Self-Hosting](https://bmkg-api.dhanypedia.com/self-host.html) untuk detail.

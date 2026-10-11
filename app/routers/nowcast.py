@@ -70,11 +70,11 @@ async def get_active_provinces(
         
     except Exception as e:
         return JSONResponse(
-            status_code=502,
+            status_code=503,
             content={
                 "error": "upstream_error",
                 "message": f"Failed to fetch weather warnings: {str(e)}",
-                "status": 502,
+                "status": 503,
             },
         )
 
@@ -134,11 +134,11 @@ async def check_location_warnings(
         
     except Exception as e:
         return JSONResponse(
-            status_code=502,
+            status_code=503,
             content={
                 "error": "upstream_error",
                 "message": f"Failed to check location warnings: {str(e)}",
-                "status": 502,
+                "status": 503,
             },
         )
 
@@ -199,10 +199,10 @@ async def get_warning_detail(
         
     except Exception as e:
         return JSONResponse(
-            status_code=502,
+            status_code=503,
             content={
                 "error": "upstream_error",
                 "message": f"Failed to fetch warning detail: {str(e)}",
-                "status": 502,
+                "status": 503,
             },
         )

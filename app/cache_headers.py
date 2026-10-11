@@ -23,6 +23,23 @@ def endpoint_ttl(path: str) -> int | None:
     return None
 
 
+def website_cache_control(path: str, status_code: int) -> str | None:
+    """Cache policy for the website's own files.
+
+    Build output under /_app/immutable/ has a content hash in its name and never
+    changes. Pages must be revalidated: a page cached across a deploy would ask
+    for script files that no longer exist.
+    """
+    if status_code != 200:
+        return None
+    if path.startswith("/_app/immutable/"):
+        return "public, max-age=31536000, immutable"
+    last = path.rsplit("/", 1)[-1]
+    if last == "" or last.endswith(".html"):
+        return "no-cache"
+    return None
+
+
 def cache_control_for(path: str, status_code: int, remaining_ttl: str | None = None) -> str | None:
     """Build the Cache-Control value for a response.
 
@@ -39,7 +56,7 @@ def cache_control_for(path: str, status_code: int, remaining_ttl: str | None = N
 
     ttl = endpoint_ttl(path)
     if ttl is None:
-        return None
+        return website_cache_control(path, status_code)
 
     if status_code == 200:
         # Expire together with the server-side cache entry, so the CDN never

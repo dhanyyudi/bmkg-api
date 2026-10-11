@@ -107,7 +107,7 @@ app = FastAPI(
     description=DESCRIPTION,
     version=__version__,
     docs_url=None,  # Disable default Swagger UI
-    redoc_url="/docs",  # ReDoc at /docs (cleaner UI)
+    redoc_url="/redoc",  # /docs is the website's own documentation page
     openapi_url="/openapi.json",
     lifespan=lifespan,
     openapi_tags=TAGS_METADATA,
@@ -151,9 +151,10 @@ async def add_cache_control(request: Request, call_next):
         )
         if cache_control:
             response.headers["Cache-Control"] = cache_control
-            # CORSMiddleware only answers requests that send Origin. A CDN copy
-            # made from a non-browser request would then break browser clients.
-            response.headers.setdefault("Access-Control-Allow-Origin", "*")
+            if request.url.path.startswith("/v1/"):
+                # CORSMiddleware only answers requests that send Origin. A CDN copy
+                # made from a non-browser request would then break browser clients.
+                response.headers.setdefault("Access-Control-Allow-Origin", "*")
     return response
 
 
@@ -164,9 +165,20 @@ app.include_router(earthquake.router)
 app.include_router(weather.router)
 app.include_router(wilayah.router)
 
-# Mount static files for landing page (MUST be last due to catch-all behavior)
-app.mount("/static", StaticFiles(directory="landing"), name="static")
-app.mount("/", StaticFiles(directory="landing", html=True), name="landing")
+# Pages that moved when the website was rebuilt
+@app.get("/self-host.html", include_in_schema=False)
+async def redirect_self_host():
+    return RedirectResponse("/self-host/", status_code=301)
+
+
+@app.get("/mcp-setup.html", include_in_schema=False)
+async def redirect_mcp_setup():
+    return RedirectResponse("/mcp-setup/", status_code=301)
+
+
+# Mount the website (MUST be last due to catch-all behavior). The directory is
+# produced by the web/ build, so it may be absent when only the API is run.
+app.mount("/", StaticFiles(directory=settings.landing_dir, html=True, check_dir=False), name="landing")
 
 
 @app.exception_handler(Exception)

@@ -58,12 +58,8 @@ AGENTS.md
 .agent
 .claude
 
-# Node.js (Tailwind CSS build)
+# Node.js (website build in web/)
 node_modules/
-package-lock.json
-
-# Build files (keep output.css for production)
-landing/input.css
 
 # Private deployment configs (homeserver)
 private/
@@ -74,3 +70,9 @@ docker-compose.mcp.yml
 Dockerfile.mcp
 HOMESERVER_DEPLOY.md
 deploy-homeserver.sh
+
+# Built website (source in web/)
+/landing/
+
+# The Python template above ignores lib/; the website's source lives in one
+!web/src/lib/

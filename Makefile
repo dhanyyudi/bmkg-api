@@ -1,6 +1,6 @@
 # BMKG API - Makefile for development workflow
 
-.PHONY: help setup test dev docker-test docker-build deploy clean
+.PHONY: help setup test dev web docker-test docker-build deploy clean
 
 # Default target
 help:
@@ -10,6 +10,7 @@ help:
 	@echo "  make setup       - Setup virtual environment and install dependencies"
 	@echo "  make test        - Run all tests"
 	@echo "  make dev         - Run development server with hot reload"
+	@echo "  make web         - Build the website (web/) into ./landing"
 	@echo ""
 	@echo "Docker Testing:"
 	@echo "  make docker-build    - Build Docker image"
@@ -35,6 +36,10 @@ test:
 dev:
 	@echo "🚀 Starting development server..."
 	./venv/bin/uvicorn app.main:app --reload --host 0.0.0.0 --port 8099
+
+# The API serves ./landing; without it only the API endpoints respond.
+web:
+	cd web && npm ci && npm run build
 
 # Docker Testing
 docker-build:

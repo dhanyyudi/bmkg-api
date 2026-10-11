@@ -43,8 +43,8 @@ class TestEarthquakeEndpoints:
         """Test earthquake endpoints return valid data."""
         response = client.get(endpoint)
         
-        # Should return 200 or 502 (if BMKG is down)
-        assert response.status_code in [200, 502]
+        # Should return 200 or 503 (if BMKG is down)
+        assert response.status_code in [200, 503]
         
         if response.status_code == 200:
             data = response.json()
@@ -83,7 +83,7 @@ class TestEarthquakeEndpoints:
         """Test nearby earthquake search."""
         response = client.get("/v1/earthquake/nearby?lat=-6.2&lon=106.8&radius_km=500")
         
-        assert response.status_code in [200, 502]
+        assert response.status_code in [200, 503]
         
         if response.status_code == 200:
             data = response.json()
@@ -110,11 +110,21 @@ class TestAPIFeatures:
         # Starlette returns the origin for credentialed requests
         assert response.headers["access-control-allow-origin"] in ["*", "http://example.com"]
     
-    def test_docs_accessible(self, client):
-        """Test Swagger UI is accessible."""
-        response = client.get("/docs")
+    def test_openapi_reference_accessible(self, client):
+        """Test the generated OpenAPI reference is served at /redoc."""
+        response = client.get("/redoc")
         assert response.status_code == 200
-        assert "swagger" in response.text.lower() or "fastapi" in response.text.lower()
+        assert "redoc" in response.text.lower()
+
+    @pytest.mark.parametrize("old,new", [
+        ("/self-host.html", "/self-host/"),
+        ("/mcp-setup.html", "/mcp-setup/"),
+    ])
+    def test_old_page_urls_redirect(self, client, old, new):
+        """Test pages that moved in the website rebuild still resolve."""
+        response = client.get(old, follow_redirects=False)
+        assert response.status_code == 301
+        assert response.headers["location"] == new
     
     def test_openapi_schema(self, client):
         """Test OpenAPI schema is accessible."""

@@ -63,10 +63,24 @@ class TestCacheControlFor:
         """Test health endpoints are never cached."""
         assert cache_control_for(path, 200) == "no-store"
 
-    @pytest.mark.parametrize("path", ["/", "/docs", "/static/logo.svg"])
+    @pytest.mark.parametrize("path", ["/redoc", "/openapi.json", "/logo.svg"])
     def test_other_paths_untouched(self, path):
         """Test non-API paths keep their own caching behaviour."""
         assert cache_control_for(path, 200) is None
+
+    @pytest.mark.parametrize("path", ["/", "/docs/", "/self-host/", "/404.html"])
+    def test_pages_are_revalidated(self, path):
+        """Test a page is never reused across a deploy without checking."""
+        assert cache_control_for(path, 200) == "no-cache"
+
+    def test_hashed_build_files_are_immutable(self):
+        """Test content-hashed build output is cached for good."""
+        value = cache_control_for("/_app/immutable/nodes/2.CQZi2gHX.js", 200)
+        assert value == "public, max-age=31536000, immutable"
+
+    def test_missing_build_file_is_not_cached(self):
+        """Test a 404 for a build file is not given the immutable policy."""
+        assert cache_control_for("/_app/immutable/nodes/gone.js", 404) is None
 
 
 class TestCacheControlMiddleware:

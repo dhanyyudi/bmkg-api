@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     # Upstream protection: max requests per minute sent to each BMKG host (0 disables the cap)
     upstream_max_per_minute: int = Field(default=50, alias="UPSTREAM_MAX_PER_MINUTE")
 
+    # Directory holding the built website (see web/)
+    landing_dir: str = Field(default="landing", alias="LANDING_DIR")
+
     # Logging
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
     

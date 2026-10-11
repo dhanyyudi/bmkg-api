@@ -43,7 +43,7 @@ def serialize_earthquake(eq: Earthquake) -> dict:
     
     ## Error Responses
     
-    - `502`: BMKG API unavailable
+    - `503`: BMKG API unavailable
     - `429`: Rate limit exceeded
     """,
     responses={
@@ -78,7 +78,7 @@ def serialize_earthquake(eq: Earthquake) -> dict:
             "description": "Rate limit exceeded",
             "model": ErrorResponse,
         },
-        502: {
+        503: {
             "description": "BMKG API unavailable",
             "model": ErrorResponse,
         },
@@ -111,11 +111,11 @@ async def get_latest_earthquake(
         
     except Exception as e:
         return JSONResponse(
-            status_code=502,
+            status_code=503,
             content={
                 "error": "upstream_error",
                 "message": f"Failed to fetch earthquake data: {str(e)}",
-                "status": 502,
+                "status": 503,
             },
         )
 
@@ -137,7 +137,7 @@ async def get_latest_earthquake(
     
     ## Error Responses
     
-    - `502`: BMKG API unavailable
+    - `503`: BMKG API unavailable
     - `429`: Rate limit exceeded
     """,
     responses={
@@ -172,7 +172,7 @@ async def get_latest_earthquake(
             },
         },
         429: {"description": "Rate limit exceeded", "model": ErrorResponse},
-        502: {"description": "BMKG API unavailable", "model": ErrorResponse},
+        503: {"description": "BMKG API unavailable", "model": ErrorResponse},
     },
 )
 @limiter.limit(settings.rate_limit_anonymous)
@@ -202,11 +202,11 @@ async def get_recent_earthquakes(
         
     except Exception as e:
         return JSONResponse(
-            status_code=502,
+            status_code=503,
             content={
                 "error": "upstream_error",
                 "message": f"Failed to fetch earthquake data: {str(e)}",
-                "status": 502,
+                "status": 503,
             },
         )
 
@@ -228,7 +228,7 @@ async def get_recent_earthquakes(
     
     ## Error Responses
     
-    - `502`: BMKG API unavailable
+    - `503`: BMKG API unavailable
     - `429`: Rate limit exceeded
     """,
     responses={
@@ -263,7 +263,7 @@ async def get_recent_earthquakes(
             },
         },
         429: {"description": "Rate limit exceeded", "model": ErrorResponse},
-        502: {"description": "BMKG API unavailable", "model": ErrorResponse},
+        503: {"description": "BMKG API unavailable", "model": ErrorResponse},
     },
 )
 @limiter.limit(settings.rate_limit_anonymous)
@@ -293,11 +293,11 @@ async def get_felt_earthquakes(
         
     except Exception as e:
         return JSONResponse(
-            status_code=502,
+            status_code=503,
             content={
                 "error": "upstream_error",
                 "message": f"Failed to fetch earthquake data: {str(e)}",
-                "status": 502,
+                "status": 503,
             },
         )
 
@@ -329,7 +329,7 @@ async def get_felt_earthquakes(
     ## Error Responses
     
     - `400`: Invalid coordinates
-    - `502`: BMKG API unavailable
+    - `503`: BMKG API unavailable
     - `429`: Rate limit exceeded
     """,
     responses={
@@ -368,7 +368,7 @@ async def get_felt_earthquakes(
         },
         400: {"description": "Invalid coordinates", "model": ErrorResponse},
         429: {"description": "Rate limit exceeded", "model": ErrorResponse},
-        502: {"description": "BMKG API unavailable", "model": ErrorResponse},
+        503: {"description": "BMKG API unavailable", "model": ErrorResponse},
     },
 )
 @limiter.limit(settings.rate_limit_anonymous)
@@ -410,10 +410,10 @@ async def get_nearby_earthquakes(
         
     except Exception as e:
         return JSONResponse(
-            status_code=502,
+            status_code=503,
             content={
                 "error": "upstream_error",
                 "message": f"Failed to fetch earthquake data: {str(e)}",
-                "status": 502,
+                "status": 503,
             },
         )

@@ -1,0 +1,10 @@
+.git
+.github
+**/node_modules
+web/.svelte-kit
+landing
+venv
+.venv
+**/__pycache__
+tests
+data

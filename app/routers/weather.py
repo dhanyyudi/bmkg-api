@@ -117,11 +117,11 @@ async def get_weather_forecast(
                 },
             )
         return JSONResponse(
-            status_code=502,
+            status_code=503,
             content={
                 "error": "upstream_error",
                 "message": f"Failed to fetch weather data: {str(e)}",
-                "status": 502,
+                "status": 503,
             },
         )
 
@@ -196,11 +196,11 @@ async def get_current_weather(
                 },
             )
         return JSONResponse(
-            status_code=502,
+            status_code=503,
             content={
                 "error": "upstream_error",
                 "message": f"Failed to fetch weather data: {str(e)}",
-                "status": 502,
+                "status": 503,
             },
         )
 
