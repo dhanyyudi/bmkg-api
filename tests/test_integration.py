@@ -119,9 +119,12 @@ class TestAPIFeatures:
     @pytest.mark.parametrize("old,new", [
         ("/self-host.html", "/self-host/"),
         ("/mcp-setup.html", "/mcp-setup/"),
+        ("/docs", "/docs/"),
+        ("/self-host", "/self-host/"),
+        ("/mcp-setup", "/mcp-setup/"),
     ])
     def test_old_page_urls_redirect(self, client, old, new):
-        """Test pages that moved in the website rebuild still resolve."""
+        """Test old and bare page URLs redirect with a relative Location."""
         response = client.get(old, follow_redirects=False)
         assert response.status_code == 301
         assert response.headers["location"] == new

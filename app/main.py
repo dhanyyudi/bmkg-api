@@ -165,15 +165,26 @@ app.include_router(earthquake.router)
 app.include_router(weather.router)
 app.include_router(wilayah.router)
 
-# Pages that moved when the website was rebuilt
-@app.get("/self-host.html", include_in_schema=False)
-async def redirect_self_host():
-    return RedirectResponse("/self-host/", status_code=301)
+def _redirect_to(target: str):
+    async def redirect():
+        return RedirectResponse(target, status_code=301)
+
+    return redirect
 
 
-@app.get("/mcp-setup.html", include_in_schema=False)
-async def redirect_mcp_setup():
-    return RedirectResponse("/mcp-setup/", status_code=301)
+# Website pages live at a trailing-slash URL. Redirect the old .html names and
+# the bare names here, with a relative Location: behind a TLS-terminating proxy
+# the app sees plain HTTP, and the absolute URL StaticFiles would build for a
+# bare name points at http://.
+WEBSITE_REDIRECTS = {
+    "/self-host.html": "/self-host/",
+    "/mcp-setup.html": "/mcp-setup/",
+    "/docs": "/docs/",
+    "/self-host": "/self-host/",
+    "/mcp-setup": "/mcp-setup/",
+}
+for _old, _new in WEBSITE_REDIRECTS.items():
+    app.add_api_route(_old, _redirect_to(_new), include_in_schema=False)
 
 
 # Mount the website (MUST be last due to catch-all behavior). The directory is
