@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
+from app import __version__
 from app.config import settings
 from app.cache import cache
 from app.cache_headers import cache_control_for
@@ -104,7 +105,7 @@ This API is not affiliated with BMKG.
 app = FastAPI(
     title="BMKG API",
     description=DESCRIPTION,
-    version="1.0.0",
+    version=__version__,
     docs_url=None,  # Disable default Swagger UI
     redoc_url="/docs",  # ReDoc at /docs (cleaner UI)
     openapi_url="/openapi.json",

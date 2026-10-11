@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
 
+from app import __version__
 from app.cache import cache
 from app.models.responses import HealthResponse, ReadinessResponse
 
@@ -45,7 +46,7 @@ router = APIRouter(
                     "example": {
                         "status": "healthy",
                         "timestamp": "2026-02-16T15:30:00+07:00",
-                        "version": "1.0.0",
+                        "version": "1.1.0",
                         "cache": "healthy (redis)",
                     }
                 }
@@ -58,7 +59,7 @@ router = APIRouter(
                     "example": {
                         "status": "degraded",
                         "timestamp": "2026-02-16T15:30:00+07:00",
-                        "version": "1.0.0",
+                        "version": "1.1.0",
                         "cache": "unhealthy",
                     }
                 }
@@ -71,7 +72,7 @@ async def health_check(request: Request):
     status_data = {
         "status": "healthy",
         "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "version": "1.0.0",
+        "version": __version__,
     }
     
     # Check cache health

@@ -1782,11 +1782,46 @@ rings.forEach((ring, i) =&gt; {
               this.map = null;
             }
 
-            if (this.vizType === "earthquake") {
-              this._initEarthquakeMap();
-            } else if (this.vizType === "nowcast") {
-              this._initNowcastMap();
+            try {
+              if (this.vizType === "earthquake") {
+                this._initEarthquakeMap();
+              } else if (this.vizType === "nowcast") {
+                this._initNowcastMap();
+              }
+            } catch (err) {
+              // MapLibre throws when the browser has no WebGL (embedded or
+              // hardened browsers). Explain instead of leaving a blank panel.
+              console.warn("Map could not be created:", err);
+              this.map = null;
+              this._showMapFallback(container);
             }
+          },
+
+          // Center of the current response as [lat, lon], or null
+          _vizCenter() {
+            const data = this.response?.data;
+            if (!data) return null;
+            if (data.lat && data.lon) return [data.lat, data.lon];
+            const polygon = data.warnings?.[0]?.areas?.[0]?.polygon;
+            if (!polygon?.length) return null;
+            const sum = polygon.reduce(
+              (acc, coord) => [acc[0] + coord[0], acc[1] + coord[1]],
+              [0, 0],
+            );
+            return [sum[0] / polygon.length, sum[1] / polygon.length];
+          },
+
+          _showMapFallback(container) {
+            const center = this._vizCenter();
+            const link = center
+              ? `<a href="https://www.openstreetmap.org/?mlat=${center[0].toFixed(4)}&mlon=${center[1].toFixed(4)}#map=8/${center[0].toFixed(4)}/${center[1].toFixed(4)}" target="_blank" rel="noopener" class="font-medium text-primary-600 hover:underline">Open this location in OpenStreetMap</a>`
+              : "";
+            container.innerHTML = `
+              <div class="min-h-72 flex flex-col items-center justify-center gap-2 p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                <p class="font-medium">The interactive map needs WebGL, which this browser does not provide.</p>
+                <p>The data above is complete. Open this page in Chrome, Firefox or Safari to see the map.</p>
+                ${link}
+              </div>`;
           },
 
           _initEarthquakeMap() {
