@@ -14,6 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY app/ ./app/
 COPY landing/ ./landing/
+# MCP server ships in the same image; run it with: python -m mcp_server.http_server
+COPY mcp_server/ ./mcp_server/
 
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
