@@ -99,6 +99,24 @@ class TestGetVisibilityText:
 class TestParseLocation:
     """Test location parsing."""
     
+    def test_parse_location_renamed_keys(self):
+        """Parse location using BMKG's current kotkab/desa keys."""
+        data = {
+            "adm4": "31.74.04.1006",
+            "provinsi": "DKI Jakarta",
+            "kotkab": "Kota Adm. Jakarta Selatan",
+            "kecamatan": "Pasar Minggu",
+            "desa": "Pejaten Barat",
+            "lat": -6.2729931264,
+            "lon": 106.8352825471,
+            "timezone": "Asia/Jakarta",
+        }
+
+        location = parse_location(data)
+
+        assert location.district == "Kota Adm. Jakarta Selatan"
+        assert location.village == "Pejaten Barat"
+
     def test_parse_location_complete(self):
         """Parse complete location data."""
         data = {
@@ -178,6 +196,29 @@ class TestParseForecastEntry:
         assert entry.visibility_text == "> 10 km"
         assert "berawan-tebal-am.svg" in entry.icon_url
     
+    def test_parse_entry_without_visibility(self):
+        """Parse entry where BMKG sends null visibility."""
+        data = {
+            "local_datetime": "2026-10-11 09:00:00",
+            "utc_datetime": "2026-10-11 02:00:00",
+            "t": 32,
+            "hu": 55,
+            "weather": 1,
+            "ws": 4.8,
+            "wd": "NE",
+            "wd_deg": 66,
+            "tcc": 17,
+            "vs": None,
+            "vs_text": None,
+        }
+
+        entry = parse_forecast_entry(data)
+
+        assert isinstance(entry, ForecastEntry)
+        assert entry.temperature_c == 32
+        assert entry.visibility_m is None
+        assert entry.visibility_text is None
+
     def test_parse_night_entry(self):
         """Parse nighttime forecast entry."""
         data = {

@@ -85,8 +85,8 @@ class ForecastEntry(BaseModel):
     wind_direction: str = Field(..., description="Wind direction (e.g., SW, NNE)")
     wind_direction_deg: int = Field(..., description="Wind direction in degrees (0-360)", ge=0, le=360)
     cloud_cover_pct: int = Field(..., description="Cloud cover percentage", ge=0, le=100)
-    visibility_m: int = Field(..., description="Visibility in meters", ge=0)
-    visibility_text: str = Field(..., description="Visibility as text (e.g., '> 10 km')")
+    visibility_m: int | None = Field(None, description="Visibility in meters, null if BMKG has no value", ge=0)
+    visibility_text: str | None = Field(None, description="Visibility as text (e.g., '> 10 km'), null if unavailable")
     icon_url: str = Field(..., description="URL to weather icon SVG")
 
 

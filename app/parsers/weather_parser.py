@@ -67,9 +67,10 @@ def parse_location(data: dict) -> Location:
     return Location(
         code=data.get("adm4", ""),
         province=data.get("provinsi", ""),
-        district=data.get("kabkota", ""),
+        # BMKG renamed kabkota -> kotkab and deskel -> desa; accept both.
+        district=data.get("kotkab") or data.get("kabkota", ""),
         subdistrict=data.get("kecamatan", ""),
-        village=data.get("deskel", ""),
+        village=data.get("desa") or data.get("deskel", ""),
         lat=float(data.get("lat", 0)),
         lon=float(data.get("lon", 0)),
         timezone=data.get("timezone", "+0700"),
@@ -118,8 +119,10 @@ def parse_forecast_entry(entry_data: dict, timezone_offset: str = "+0700") -> Fo
         
         # Parse cloud cover and visibility
         cloud_cover = int(entry_data.get("tcc", 0))
-        visibility = int(entry_data.get("vs", 0))
-        visibility_text = get_visibility_text(visibility)
+        # BMKG sends null when visibility is not available
+        raw_visibility = entry_data.get("vs")
+        visibility = int(raw_visibility) if raw_visibility is not None else None
+        visibility_text = get_visibility_text(visibility) if visibility is not None else None
         
         # Get icon URL
         icon_url = get_icon_url(weather_code, is_day)
