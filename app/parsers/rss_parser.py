@@ -121,8 +121,13 @@ def parse_rss_feed(xml_content: str, language: str = "id") -> list[ActiveProvinc
         alert_code = extract_alert_code_from_link(link)
         
         # Extract province name from title
-        # Format: "Hujan Lebat disertai Petir di Banten"
-        province_name = title.split(' di ')[-1] if ' di ' in title else title
+        # Format: "Hujan Lebat disertai Petir di Banten", or in the English
+        # feed "Thunderstorm This Morning in Banten"
+        province_name = title
+        for separator in (' di ', ' in '):
+            if separator in title:
+                province_name = title.rsplit(separator, 1)[-1]
+                break
         
         # Build detail URL
         detail_url = f"/v1/nowcast/{alert_code}"

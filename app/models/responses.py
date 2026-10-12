@@ -91,7 +91,7 @@ class HealthResponse(BaseModel):
             "example": {
                 "status": "healthy",
                 "timestamp": "2026-02-16T15:30:00+07:00",
-                "version": "1.3.0",
+                "version": "1.4.0",
                 "cache": "healthy (redis)",
             }
         }

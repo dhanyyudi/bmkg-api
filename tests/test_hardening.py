@@ -156,6 +156,50 @@ class TestLocationCheck:
                 await nowcast_service.check_location("Serang", "id")
 
 
+class TestActiveWarnings:
+    """Test the endpoint returning every active warning in full."""
+
+    ACTIVE = [
+        ActiveProvince(code="CBT20260216004", province="Banten", description="x", published_at="2026-02-16T07:00:00Z", detail_url="/v1/nowcast/CBT20260216004"),
+        ActiveProvince(code="CJT20260216001", province="Jawa Tengah", description="y", published_at="2026-02-16T07:10:00Z", detail_url="/v1/nowcast/CJT20260216001"),
+    ]
+
+    def test_route_is_not_shadowed_by_alert_code(self):
+        """Test /warnings reaches the full list, not the alert detail route."""
+        with patch.object(nowcast_service, "_get_cached_or_fetch_rss", new=AsyncMock(return_value=([], True))):
+            response = TestClient(app).get("/v1/nowcast/warnings")
+        assert response.status_code == 200
+        assert response.json()["data"] == []
+        assert response.json()["meta"]["missing"] == []
+
+    @pytest.mark.asyncio
+    async def test_unreadable_warning_is_reported_as_missing(self, sample_cap_banten):
+        """Test a warning whose detail fails is named, not silently dropped."""
+        from app.parsers.cap_parser import parse_cap_xml
+
+        banten = parse_cap_xml(sample_cap_banten)
+
+        async def fetch_cap(code, language, ttl):
+            if code == "CJT20260216001":
+                raise Exception("BMKG returned 500")
+            return banten, True
+
+        with patch.object(nowcast_service, "_get_cached_or_fetch_rss", new=AsyncMock(return_value=(self.ACTIVE, True))), \
+                patch.object(nowcast_service, "_get_cached_or_fetch_cap", new=AsyncMock(side_effect=fetch_cap)):
+            found, missing, _ = await nowcast_service.get_active_warnings("id")
+
+        assert [province.code for province, _ in found] == ["CBT20260216004"]
+        assert missing == ["CJT20260216001"]
+
+    @pytest.mark.asyncio
+    async def test_spent_budget_fails_instead_of_returning_a_partial_list(self):
+        """Test the list is never cut short by the request budget."""
+        with patch.object(nowcast_service, "_get_cached_or_fetch_rss", new=AsyncMock(return_value=(self.ACTIVE, True))), \
+                patch.object(nowcast_service, "_get_cached_or_fetch_cap", new=AsyncMock(side_effect=UpstreamBudgetExceeded("spent"))):
+            with pytest.raises(UpstreamBudgetExceeded):
+                await nowcast_service.get_active_warnings("id")
+
+
 class TestInputBounds:
     """Test length limits on free-text parameters."""
 

@@ -36,6 +36,15 @@ class TestRssParser:
         code = extract_alert_code_from_link(link)
         assert code == "CBT20260216004"
     
+    def test_parse_rss_feed_english_titles(self, load_fixture):
+        """Test the province is read from an English title too."""
+        xml_content = load_fixture("rss_active.xml").replace(
+            "Hujan Lebat disertai Petir di Banten", "Thunderstorm This Morning in Banten"
+        )
+        provinces = parse_rss_feed(xml_content, "en")
+
+        assert provinces[0].province == "Banten"
+
     def test_parse_rss_feed(self, load_fixture):
         """Test parsing RSS feed XML."""
         xml_content = load_fixture("rss_active.xml")

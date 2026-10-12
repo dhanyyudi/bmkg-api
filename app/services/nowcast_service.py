@@ -226,6 +226,46 @@ class NowcastService:
         
         return warning, region_name, from_cache, ttl
     
+    async def get_active_warnings(
+        self,
+        language: str = "id",
+    ) -> tuple[list[tuple[ActiveProvince, Warning]], list[str], int]:
+        """Get every active warning in full.
+
+        Args:
+            language: Language code (id/en)
+
+        Returns:
+            Tuple of (warnings paired with their feed entry, codes whose
+            detail could not be read, ttl)
+        """
+        provinces, _ = await self._get_cached_or_fetch_rss(
+            language,
+            settings.cache_ttl_nowcast,
+        )
+
+        found: list[tuple[ActiveProvince, Warning]] = []
+        missing: list[str] = []
+        for province in provinces:
+            try:
+                warning, _ = await self._get_cached_or_fetch_cap(
+                    province.code,
+                    language,
+                    settings.cache_ttl_nowcast,
+                )
+            except UpstreamBudgetExceeded:
+                # A partial list would read as "these are all the warnings"
+                raise
+            except Exception:
+                missing.append(province.code)
+                continue
+            if warning is None:
+                missing.append(province.code)
+            else:
+                found.append((province, warning))
+
+        return found, missing, settings.cache_ttl_nowcast
+
     async def check_location(
         self,
         location: str,

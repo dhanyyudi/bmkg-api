@@ -78,6 +78,7 @@ curl https://bmkg-api.dhanypedia.com/v1/wilayah/search?q=tebet
 | Endpoint | Description |
 |----------|-------------|
 | `GET /v1/nowcast` | Active weather warnings by province |
+| `GET /v1/nowcast/warnings` | All active warnings in full, with polygons, in one request |
 | `GET /v1/nowcast/{alert_code}` | Warning detail with affected area polygons |
 | `GET /v1/nowcast/check?location=` | Check warnings for a specific location |
 
@@ -356,6 +357,7 @@ curl https://bmkg-api.dhanypedia.com/v1/wilayah/search?q=wiradesa
 | Endpoint | Deskripsi |
 |----------|-----------|
 | `GET /v1/nowcast` | Peringatan cuaca aktif per provinsi |
+| `GET /v1/nowcast/warnings` | Semua peringatan aktif secara lengkap, dengan poligon, dalam satu permintaan |
 | `GET /v1/nowcast/{alert_code}` | Detail peringatan dengan poligon area |
 | `GET /v1/nowcast/check?location=` | Cek peringatan untuk lokasi tertentu |
 

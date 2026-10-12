@@ -143,6 +143,60 @@ async def check_location_warnings(
         )
 
 
+# Declared before /{alert_code}, for the same reason as /check.
+@router.get("/warnings")
+@limiter.limit(settings.rate_limit_anonymous)
+async def get_active_warnings(
+    request: Request,
+    lang: str = Query("id", description="Language code (id/en)", pattern="^(id|en)$"),
+):
+    """Get every active weather warning in full, with affected areas.
+
+    One request instead of the list of provinces plus one detail request per
+    province: what a map of current warnings needs.
+
+    `meta.missing` lists the codes of active warnings whose detail could not
+    be read from BMKG, so a short list is never mistaken for a complete one.
+
+    **Query Parameters:**
+    - `lang`: Language code - "id" (Indonesian) or "en" (English). Default: "id"
+    """
+    try:
+        found, missing, ttl = await nowcast_service.get_active_warnings(lang)
+
+        response_data = {
+            "data": [
+                {
+                    "code": province.code,
+                    "province": province.province,
+                    "published_at": province.model_dump(mode='json')["published_at"],
+                    "warning": serialize_warning(warning),
+                }
+                for province, warning in found
+            ],
+            "meta": {
+                "count": len(found),
+                "missing": missing,
+                "fetched_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "cache_ttl": ttl,
+                "language": lang,
+            },
+            "attribution": "BMKG (Badan Meteorologi, Klimatologi, dan Geofisika)",
+        }
+
+        return JSONResponse(content=response_data, headers={"X-Cache-TTL": str(ttl)})
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": "upstream_error",
+                "message": f"Failed to fetch weather warnings: {str(e)}",
+                "status": 503,
+            },
+        )
+
+
 @router.get("/{alert_code}", response_model=APIResponse[NowcastDetailResponse])
 @limiter.limit(settings.rate_limit_anonymous)
 async def get_warning_detail(
