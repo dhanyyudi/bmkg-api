@@ -32,9 +32,8 @@ async def search_regions(
 async def get_provinces() -> ToolResponse:
     """List the provinces of Indonesia with their 2-digit codes.
 
-    Starting point for browsing down to a village. The list follows
-    Permendagri 72/2019 (34 provinces), so the provinces created in Papua
-    after 2022 are not listed.
+    Starting point for browsing down to a village. The data is the Dukcapil
+    Kemendagri 2024 set, including the provinces created in Papua in 2022.
     """
     return await call_api("get_provinces", "/wilayah/provinces", cache_type="region")
 

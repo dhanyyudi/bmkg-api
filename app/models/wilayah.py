@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, ConfigDict
 class WilayahLevel(str, Enum):
     """Hierarchy levels for Indonesian administrative regions.
     
-    Based on Permendagri No. 72/2019 standard:
+    Kemendagri region codes:
     - Province (Provinsi): 2 digits (e.g., "33")
     - District (Kabupaten/Kota): 5 digits (e.g., "33.26")
     - Subdistrict (Kecamatan): 8 digits (e.g., "33.26.16")
@@ -24,7 +24,7 @@ class Wilayah(BaseModel):
     """Base wilayah model.
     
     Represents an administrative region in Indonesia using
-    the standard Permendagri coding system.
+    the Kemendagri coding system.
     """
     
     model_config = ConfigDict(
@@ -37,7 +37,7 @@ class Wilayah(BaseModel):
         }
     )
     
-    code: str = Field(..., description="Wilayah code (Permendagri format)")
+    code: str = Field(..., description="Wilayah code (Kemendagri format)")
     name: str = Field(..., description="Wilayah name")
     level: WilayahLevel = Field(..., description="Administrative level")
 
@@ -54,13 +54,13 @@ class WilayahSearchResult(Wilayah):
                 "code": "33.26.16",
                 "name": "Wiradesa",
                 "level": "subdistrict",
-                "full_path": "Jawa Tengah > Kab. Pekalongan > Wiradesa",
+                "full_path": "Jawa Tengah > Kabupaten Pekalongan > Wiradesa",
                 "parent_code": "33.26",
             }
         }
     )
     
-    full_path: str = Field(..., description="Full hierarchical path (e.g., 'Jawa Tengah > Kab. Pekalongan > Wiradesa')")
+    full_path: str = Field(..., description="Full hierarchical path (e.g., 'Jawa Tengah > Kabupaten Pekalongan > Wiradesa')")
     parent_code: str | None = Field(None, description="Parent wilayah code")
 
 
@@ -101,7 +101,7 @@ class WilayahSearchResponse(BaseModel):
                         "code": "33.26.16",
                         "name": "Wiradesa",
                         "level": "subdistrict",
-                        "full_path": "Jawa Tengah > Kab. Pekalongan > Wiradesa",
+                        "full_path": "Jawa Tengah > Kabupaten Pekalongan > Wiradesa",
                         "parent_code": "33.26",
                     }
                 ],

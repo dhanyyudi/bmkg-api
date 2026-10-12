@@ -39,9 +39,9 @@ def _serialize_search_result(w: WilayahSearchResult) -> dict:
 async def get_provinces(
     request: Request,
 ):
-    """Get all 34 provinces in Indonesia.
+    """Get all provinces in Indonesia.
     
-    Returns a list of all Indonesian provinces based on Permendagri 72/2019.
+    Returns every province in the bundled region data (Dukcapil Kemendagri 2024).
     """
     try:
         provinces = wilayah_service.get_provinces()
@@ -52,7 +52,7 @@ async def get_provinces(
                 "fetched_at": datetime.now(timezone.utc).isoformat() + "Z",
                 "count": len(provinces),
             },
-            "attribution": "Permendagri 72/2019",
+            "attribution": "Dukcapil Kemendagri 2024, via wilayah-id",
         }
         
         return JSONResponse(content=response_data)
@@ -101,7 +101,7 @@ async def get_districts(
                 "province_code": province,
                 "province_name": province_wilayah.name,
             },
-            "attribution": "Permendagri 72/2019",
+            "attribution": "Dukcapil Kemendagri 2024, via wilayah-id",
         }
         
         return JSONResponse(content=response_data)
@@ -150,7 +150,7 @@ async def get_subdistricts(
                 "district_code": district,
                 "district_name": district_wilayah.name,
             },
-            "attribution": "Permendagri 72/2019",
+            "attribution": "Dukcapil Kemendagri 2024, via wilayah-id",
         }
         
         return JSONResponse(content=response_data)
@@ -199,7 +199,7 @@ async def get_villages(
                 "subdistrict_code": subdistrict,
                 "subdistrict_name": subdistrict_wilayah.name,
             },
-            "attribution": "Permendagri 72/2019",
+            "attribution": "Dukcapil Kemendagri 2024, via wilayah-id",
         }
         
         return JSONResponse(content=response_data)
@@ -238,7 +238,7 @@ async def search_wilayah(
                 "query": q,
                 "limit": limit,
             },
-            "attribution": "Permendagri 72/2019",
+            "attribution": "Dukcapil Kemendagri 2024, via wilayah-id",
         }
         
         return JSONResponse(content=response_data)

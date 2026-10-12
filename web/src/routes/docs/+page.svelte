@@ -66,7 +66,7 @@
 			ttl: '24 h'
 		},
 		'wilayah-provinces': {
-			detail: 'All provinces with their 2-digit codes. The list follows Permendagri 72/2019, so the provinces created in Papua after 2022 are missing.',
+			detail: 'All 38 provinces with their 2-digit codes.',
 			params: [],
 			ttl: '24 h'
 		},

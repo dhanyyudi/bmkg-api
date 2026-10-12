@@ -154,7 +154,7 @@ When assisting researchers:
 2. Data Format:
    - Earthquake data includes: magnitude, depth, coordinates, timestamp
    - Weather data includes: temperature (°C), humidity (%), wind (km/h), weather codes
-   - Region data: hierarchical codes following Permendagri 72/2019
+   - Region data: hierarchical Kemendagri codes (Dukcapil 2024)
 
 3. Analysis Tips:
    - Earthquake depth < 70km = shallow (more destructive)

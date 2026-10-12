@@ -11,7 +11,8 @@ from app.models.wilayah import Wilayah, WilayahLevel, WilayahSearchResult
 class WilayahService:
     """Service for wilayah (region) data operations.
     
-    Loads the Permendagri 72/2019 wilayah data from CSV into memory
+    Loads the bundled region data (a wilayah-id snapshot, Dukcapil Kemendagri
+    2024; see scripts/update_wilayah.py) from CSV into memory
     and provides fast lookup by level and search functionality.
     """
     
@@ -116,7 +117,7 @@ class WilayahService:
         self._loaded = True
     
     def get_provinces(self) -> list[Wilayah]:
-        """Get all provinces (34 total)."""
+        """Get all provinces."""
         self.load_data()
         return [self._data[code] for code in self._by_level[WilayahLevel.PROVINCE]]
     
@@ -195,42 +196,26 @@ class WilayahService:
         # Province
         province_code = code_parts[0]
         if province_code in self._data:
-            parts.append(self._title_case(self._data[province_code].name))
+            parts.append(self._data[province_code].name)
         
         # District (if applicable)
         if level in (WilayahLevel.DISTRICT, WilayahLevel.SUBDISTRICT, WilayahLevel.VILLAGE):
             district_code = f"{code_parts[0]}.{code_parts[1]}"
             if district_code in self._data:
-                parts.append(self._title_case(self._data[district_code].name))
+                parts.append(self._data[district_code].name)
         
         # Subdistrict (if applicable)
         if level in (WilayahLevel.SUBDISTRICT, WilayahLevel.VILLAGE):
             subdistrict_code = f"{code_parts[0]}.{code_parts[1]}.{code_parts[2]}"
             if subdistrict_code in self._data:
-                parts.append(self._title_case(self._data[subdistrict_code].name))
+                parts.append(self._data[subdistrict_code].name)
         
         # Village (if applicable)
         if level == WilayahLevel.VILLAGE:
             if code in self._data:
-                parts.append(self._title_case(self._data[code].name))
+                parts.append(self._data[code].name)
         
         return " > ".join(parts)
-    
-    def _title_case(self, name: str) -> str:
-        """Convert name to title case for display."""
-        # Handle common abbreviations
-        words = name.split()
-        result = []
-        
-        for word in words:
-            upper_word = word.upper()
-            # Keep common Indonesian administrative abbreviations uppercase
-            if upper_word in ("KAB.", "KOTA", "KEC.", "DESA", "KEL.", "DUSUN"):
-                result.append(upper_word if upper_word.endswith(".") else upper_word.title())
-            else:
-                result.append(word.title())
-        
-        return " ".join(result)
     
     def search(self, query: str, limit: int = 50) -> list[WilayahSearchResult]:
         """Search wilayah by name (case-insensitive).

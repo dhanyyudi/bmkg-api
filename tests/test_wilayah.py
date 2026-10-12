@@ -21,8 +21,8 @@ class TestWilayahService:
         """Test that data loads correctly."""
         stats = service.get_stats()
         
-        # Should have 34 provinces
-        assert stats["provinces"] == 34
+        # Should have 38 provinces
+        assert stats["provinces"] == 38
         
         # Should have many districts, subdistricts, and villages
         assert stats["districts"] > 400  # ~514 kabupaten/kota
@@ -34,7 +34,7 @@ class TestWilayahService:
         """Test getting all provinces."""
         provinces = service.get_provinces()
         
-        assert len(provinces) == 34
+        assert len(provinces) == 38
         
         # Check some known provinces
         codes = [p.code for p in provinces]
@@ -119,13 +119,13 @@ class TestWilayahService:
         # Province
         jateng = service.get_by_code("33")
         assert jateng is not None
-        assert jateng.name == "JAWA TENGAH"
+        assert jateng.name == "Jawa Tengah"
         assert jateng.level == WilayahLevel.PROVINCE
         
         # District
         pekalongan = service.get_by_code("33.26")
         assert pekalongan is not None
-        assert "PEKALONGAN" in pekalongan.name
+        assert "Pekalongan" in pekalongan.name
         assert pekalongan.level == WilayahLevel.DISTRICT
         
         # Non-existent
@@ -154,8 +154,8 @@ class TestWilayahAPI:
         assert "meta" in data
         assert "attribution" in data
         
-        assert len(data["data"]) == 34
-        assert data["meta"]["count"] == 34
+        assert len(data["data"]) == 38
+        assert data["meta"]["count"] == 38
         
         # Check first province structure
         province = data["data"][0]
