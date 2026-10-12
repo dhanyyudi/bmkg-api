@@ -182,6 +182,11 @@ WEBSITE_REDIRECTS = {
     "/docs": "/docs/",
     "/self-host": "/self-host/",
     "/mcp-setup": "/mcp-setup/",
+    # English pages live under /en
+    "/en": "/en/",
+    "/en/docs": "/en/docs/",
+    "/en/self-host": "/en/self-host/",
+    "/en/mcp-setup": "/en/mcp-setup/",
 }
 for _old, _new in WEBSITE_REDIRECTS.items():
     app.add_api_route(_old, _redirect_to(_new), include_in_schema=False)

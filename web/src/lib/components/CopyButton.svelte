@@ -1,47 +1,69 @@
 <script lang="ts">
-	interface Props {
-		text: string;
-		label?: string;
-	}
+	import { useMessages } from '#lib/i18n';
 
-	let { text, label = 'Copy' }: Props = $props();
-	let copied = $state(false);
+	let { text }: { text: string } = $props();
+	const i18n = useMessages();
+
+	let state = $state<'idle' | 'copied' | 'failed'>('idle');
 	let timer: ReturnType<typeof setTimeout> | undefined;
 
+	// Embedded browsers often refuse the clipboard API; a selected, hidden
+	// field still copies there.
+	function copyWithSelection(): boolean {
+		const field = document.createElement('textarea');
+		field.value = text;
+		field.setAttribute('readonly', '');
+		field.style.position = 'fixed';
+		field.style.opacity = '0';
+		document.body.appendChild(field);
+		field.select();
+		let done = false;
+		try {
+			done = document.execCommand('copy');
+		} catch {
+			done = false;
+		}
+		field.remove();
+		return done;
+	}
+
 	async function copy() {
+		let done = false;
 		try {
 			await navigator.clipboard.writeText(text);
-			copied = true;
-			clearTimeout(timer);
-			timer = setTimeout(() => (copied = false), 1600);
+			done = true;
 		} catch {
-			// Clipboard access can be denied; the text stays selectable.
+			done = copyWithSelection();
 		}
+		// Say so when nothing was copied: a button that stays silent looks broken.
+		state = done ? 'copied' : 'failed';
+		clearTimeout(timer);
+		timer = setTimeout(() => (state = 'idle'), 1800);
 	}
 </script>
 
-<button type="button" class="copy" class:copied onclick={copy} aria-live="polite">
-	{copied ? 'Copied' : label}
+<button type="button" class="copy" onclick={copy} aria-live="polite">
+	{state === 'copied' ? i18n.m.common.copied : state === 'failed' ? i18n.m.common.copyFailed : i18n.m.common.copy}
 </button>
 
 <style>
 	.copy {
-		font-family: var(--font-mono);
-		font-size: 0.75rem;
-		padding: 4px 10px;
-		border-radius: 6px;
-		border: 1px solid rgb(255 255 255 / 18%);
-		background: rgb(255 255 255 / 8%);
-		color: var(--code-ink);
-		transition: background 0.15s;
+		min-height: 30px;
+		padding: 0 10px;
+		border: 1px solid var(--ink);
+		background: var(--paper);
+		font-size: 0.8125rem;
+		white-space: nowrap;
 	}
 
 	.copy:hover {
-		background: rgb(255 255 255 / 16%);
+		background: var(--tint);
 	}
 
-	.copied {
-		color: var(--code-key);
-		border-color: var(--code-key);
+	@media (pointer: coarse), (max-width: 900px) {
+		.copy {
+			min-height: 44px;
+			min-width: 44px;
+		}
 	}
 </style>

@@ -10,7 +10,10 @@ export default defineConfig({
 	plugins: [
 		sveltekit({
 			// Plain static files, written to ../landing where the API serves them from.
-			adapter: adapter({ pages: '../landing', assets: '../landing', fallback: '404.html', strict: true })
+			adapter: adapter({ pages: '../landing', assets: '../landing', fallback: '404.html', strict: true }),
+			// One script and one stylesheet: the site is small, and fewer requests
+			// keep a first visit well under the API's rate limit.
+			output: { bundleStrategy: 'single' }
 		})
 	],
 	server: {

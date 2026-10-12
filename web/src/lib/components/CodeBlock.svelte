@@ -19,17 +19,14 @@
 			/("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,
 			(match, str, colon, word, num) => {
 				if (str) return colon ? `<span class="k">${str}</span>${colon}` : `<span class="s">${str}</span>`;
-				if (word) return `<span class="n">${word}</span>`;
-				if (num) return `<span class="n">${num}</span>`;
+				if (word || num) return `<span class="n">${word ?? num}</span>`;
 				return match;
 			}
 		);
 	}
 
 	function highlightBash(text: string): string {
-		return escape(text)
-			.replace(/^(#.*)$/gm, '<span class="c">$1</span>')
-			.replace(/(https?:\/\/[^\s'"]+)/g, '<span class="s">$1</span>');
+		return escape(text).replace(/^(#.*)$/gm, '<span class="c">$1</span>');
 	}
 
 	const html = $derived(
@@ -43,16 +40,17 @@
 		<CopyButton text={code} />
 	</figcaption>
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-	<pre style:max-height={maxHeight}><code>{@html html}</code></pre>
+	<!-- A scrolling code block has to be reachable to be scrolled by keyboard. -->
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+	<pre style:max-height={maxHeight} tabindex="0"><code>{@html html}</code></pre>
 </figure>
 
 <style>
+	/* Code sits on the unprinted margin tint, like a note beside the map. */
 	.code {
 		margin: 0;
-		border-radius: var(--radius);
-		background: var(--code-bg);
-		color: var(--code-ink);
-		overflow: hidden;
+		border: 1px solid var(--ink);
+		background: var(--tint);
 		min-width: 0;
 	}
 
@@ -61,35 +59,38 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: 12px;
-		padding: 8px 10px 8px 14px;
-		border-bottom: 1px solid rgb(255 255 255 / 8%);
+		padding: 6px 6px 6px 12px;
+		border-bottom: 1px solid var(--hair);
+		background: var(--paper);
 		font-family: var(--font-mono);
 		font-size: 0.75rem;
-		color: var(--code-muted);
+		color: var(--ink-2);
+		overflow-wrap: anywhere;
 	}
 
 	pre {
 		margin: 0;
-		padding: 14px;
+		padding: 12px;
 		overflow: auto;
 		font-size: 0.8125rem;
-		line-height: 1.6;
+		line-height: 1.55;
 		tab-size: 2;
 	}
 
+	/* Keys in water blue, strings in relief brown; numbers stay ink. */
 	pre :global(.k) {
-		color: var(--code-key);
+		color: var(--water-ink);
 	}
 
 	pre :global(.s) {
-		color: var(--code-str);
+		color: var(--relief);
 	}
 
 	pre :global(.n) {
-		color: var(--code-num);
+		font-weight: 500;
 	}
 
 	pre :global(.c) {
-		color: var(--code-muted);
+		color: var(--ink-2);
 	}
 </style>

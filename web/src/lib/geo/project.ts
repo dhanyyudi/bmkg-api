@@ -85,8 +85,13 @@ export interface Box {
 	height: number;
 }
 
-/** A viewBox around some points, padded and kept to the map's aspect ratio. */
-export function frame(points: LatLon[], minSpanDeg = 3): Box {
+/**
+ * A viewBox around some points, padded to a given shape.
+ *
+ * `aspect` is width over height. The whole-country map is a wide strip; a
+ * detail map can be taller, so it fills the panel it sits in.
+ */
+export function frame(points: LatLon[], minSpanDeg = 3, aspect = MAP.width / MAP.height): Box {
 	const full: Box = { x: 0, y: 0, width: MAP.width, height: MAP.height };
 	if (!points.length) return full;
 
@@ -96,7 +101,6 @@ export function frame(points: LatLon[], minSpanDeg = 3): Box {
 	let minY = Math.min(...xy.map((p) => p[1]));
 	let maxY = Math.max(...xy.map((p) => p[1]));
 
-	const aspect = MAP.width / MAP.height;
 	let width = Math.max((maxX - minX) * 1.5, minSpanDeg * MAP.k);
 	let height = Math.max((maxY - minY) * 1.5, (minSpanDeg * MAP.k) / aspect);
 	if (width / height > aspect) height = width / aspect;

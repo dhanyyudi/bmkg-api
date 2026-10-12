@@ -1,18 +1,18 @@
 <!doctype html>
-<html lang="en">
+<html lang="%lang%">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="light" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.svg" type="image/svg+xml" />
 		<script>
-			// Apply the saved theme before first paint to avoid a flash.
+			// A reader who chose English on an earlier visit gets the English
+			// page when opening an Indonesian URL. English URLs are left alone.
 			try {
-				const saved = localStorage.getItem('theme');
-				const dark = saved ? saved === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-				document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-			} catch {
-				document.documentElement.dataset.theme = 'light';
-			}
+				if (localStorage.getItem('lang') === 'en' && !/^\/en(\/|$)/.test(location.pathname)) {
+					location.replace('/en' + location.pathname + location.search + location.hash);
+				}
+			} catch {}
 		</script>
 		%sveltekit.head%
 	</head>

@@ -2,26 +2,32 @@
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import type { Snippet } from 'svelte';
-	import { REPO_URL } from '#lib/api';
+	import { page } from '$app/state';
+	import { PUBLIC_ORIGIN, REPO_URL } from '#lib/api';
+	import { fill, href, switchPath, useMessages } from '#lib/i18n';
 
 	let { children }: { children: Snippet } = $props();
+	const i18n = useMessages();
 
 	let status = $state<'checking' | 'online' | 'offline'>('checking');
 	let version = $state('');
-	let dark = $state(false);
 
-	function toggleTheme() {
-		dark = !dark;
-		document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+	const other = $derived(i18n.m.switchTo.locale === 'en' ? 'en' : 'id');
+	const otherPath = $derived(switchPath(page.url.pathname, other));
+
+	// The switch loads the other page afresh (data-sveltekit-reload): <html lang>
+	// and the live data, which the API returns per language, both follow.
+	// The choice is kept, so a later visit to an Indonesian URL opens in the
+	// chosen language (see the script in app.html).
+	function remember(locale: string) {
 		try {
-			localStorage.setItem('theme', dark ? 'dark' : 'light');
+			localStorage.setItem('lang', locale);
 		} catch {
-			// Storage can be unavailable; the choice then lasts for this page only.
+			// Without storage the choice lasts for this visit only.
 		}
 	}
 
 	onMount(async () => {
-		dark = document.documentElement.dataset.theme === 'dark';
 		try {
 			const response = await fetch('/health');
 			const health = await response.json();
@@ -33,37 +39,49 @@
 	});
 </script>
 
-<a class="skip" href="#main">Skip to content</a>
+<svelte:head>
+	<link rel="alternate" hreflang="id" href="{PUBLIC_ORIGIN}{switchPath(page.url.pathname, 'id')}" />
+	<link rel="alternate" hreflang="en" href="{PUBLIC_ORIGIN}{switchPath(page.url.pathname, 'en')}" />
+</svelte:head>
+
+<a class="skip" href="#main">{i18n.m.nav.skip}</a>
 
 <header class="top">
-	<div class="wrap bar">
-		<a class="brand" href="/">
-			<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-				<path d="M2 12h4l2.5-7 4 14 3-9 1.5 2H22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-			</svg>
+	<div class="sheet bar">
+		<a class="brand" href={href(i18n.locale, '/')}>
+			<img src="/logo.svg" alt="" width="30" height="30" />
 			BMKG API
 		</a>
 
-		<nav aria-label="Main">
-			<a href="/#explorer">Explorer</a>
-			<a href="/docs/">Docs</a>
-			<a href="/mcp-setup/">MCP</a>
-			<a href="/self-host/">Self-host</a>
-			<a href={REPO_URL} rel="noopener">GitHub</a>
+		<nav aria-label={i18n.m.nav.main}>
+			<a href="{href(i18n.locale, '/')}#explorer">{i18n.m.nav.explorer}</a>
+			<a href={href(i18n.locale, '/docs/')}>{i18n.m.nav.docs}</a>
+			<a href={href(i18n.locale, '/mcp-setup/')}>{i18n.m.nav.mcp}</a>
+			<a href={href(i18n.locale, '/self-host/')}>{i18n.m.nav.selfHost}</a>
+			<a href={REPO_URL} rel="noopener">{i18n.m.nav.github}</a>
 		</nav>
 
 		<div class="tools">
-			<span class="status {status}" title="Result of /health">
-				<span class="dot"></span>
-				{status === 'online' ? `API ${version}` : status === 'offline' ? 'API offline' : 'Checking'}
+			<span class="status mono" class:offline={status === 'offline'} title={i18n.m.status.title}>
+				{status === 'online'
+					? fill(i18n.m.status.online, { version })
+					: status === 'offline'
+						? i18n.m.status.offline
+						: i18n.m.status.checking}
 			</span>
-			<button type="button" class="theme" onclick={toggleTheme} aria-label="Switch to {dark ? 'light' : 'dark'} theme">
-				{#if dark}
-					<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2" /><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
-				{:else}
-					<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /></svg>
-				{/if}
-			</button>
+			<a
+				class="lang"
+				href={otherPath}
+				hreflang={other}
+				lang={other}
+				aria-label={i18n.m.switchTo.title}
+				title={i18n.m.switchTo.title}
+				data-sveltekit-reload
+				onclick={() => remember(other)}
+			>
+				<span class:on={i18n.locale === 'id'}>ID</span>
+				<span class:on={i18n.locale === 'en'}>EN</span>
+			</a>
 		</div>
 	</div>
 </header>
@@ -73,25 +91,20 @@
 </main>
 
 <footer class="foot">
-	<div class="wrap foot-grid">
-		<div>
-			<p class="brand small">BMKG API</p>
-			<p class="muted">
-				All data belongs to
-				<a href="https://www.bmkg.go.id" rel="noopener">BMKG</a>
-				(Badan Meteorologi, Klimatologi, dan Geofisika). This project is not affiliated with BMKG.
-			</p>
+	<div class="sheet foot-grid">
+		<div class="notes">
+			<p>{i18n.m.footer.source}</p>
+			<p>{i18n.m.footer.regions}</p>
+			<p>{i18n.m.footer.map}</p>
+			<p>{i18n.m.footer.license}</p>
 		</div>
-		<nav aria-label="Footer">
-			<a href="/docs/">Documentation</a>
-			<a href="/redoc" rel="external">OpenAPI reference</a>
-			<a href="/mcp-setup/">MCP setup</a>
-			<a href="/self-host/">Self-hosting</a>
-			<a href={REPO_URL} rel="noopener">GitHub</a>
+		<nav aria-label={i18n.m.footer.nav}>
+			<a href={href(i18n.locale, '/docs/')}>{i18n.m.nav.docs}</a>
+			<a href="/redoc" rel="external">{i18n.m.footer.openapi}</a>
+			<a href={href(i18n.locale, '/mcp-setup/')}>{i18n.m.nav.mcp}</a>
+			<a href={href(i18n.locale, '/self-host/')}>{i18n.m.nav.selfHost}</a>
+			<a href={REPO_URL} rel="noopener">{i18n.m.nav.github}</a>
 		</nav>
-		<p class="muted fine">
-			Made by <a href="https://github.com/dhanyyudi" rel="noopener">dhanypedia</a> · MIT License
-		</p>
 	</div>
 </footer>
 
@@ -99,11 +112,10 @@
 	.skip {
 		position: absolute;
 		left: 12px;
-		top: -48px;
-		padding: 8px 12px;
-		background: var(--accent);
-		color: var(--accent-ink);
-		border-radius: 6px;
+		top: -60px;
+		padding: 10px 14px;
+		background: var(--ink);
+		color: var(--paper);
 		z-index: 20;
 	}
 
@@ -115,147 +127,159 @@
 		position: sticky;
 		top: 0;
 		z-index: 10;
-		background: color-mix(in srgb, var(--bg) 88%, transparent);
-		backdrop-filter: blur(10px);
-		border-bottom: 1px solid var(--line);
+		background: var(--paper);
+		border-bottom: 1px solid var(--ink);
 	}
 
 	.bar {
 		display: flex;
 		align-items: center;
-		gap: 24px;
+		gap: 8px 28px;
 		min-height: 60px;
 	}
 
 	.brand {
 		display: inline-flex;
 		align-items: center;
-		gap: 8px;
-		font-weight: 600;
-		font-size: 1.05rem;
-		letter-spacing: -0.01em;
+		gap: 10px;
+		min-height: 44px;
+		font-weight: 700;
+		font-size: 1.0625rem;
 		color: var(--ink);
 		text-decoration: none;
 	}
 
-	.brand svg {
-		color: var(--accent);
+	.brand img {
+		display: block;
 	}
 
 	nav {
 		display: flex;
-		gap: 4px;
-		margin-left: auto;
+		gap: 4px 20px;
 	}
 
 	nav a {
-		padding: 6px 10px;
-		border-radius: 6px;
-		color: var(--muted);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex: none;
+		min-width: 44px;
+		min-height: 44px;
+		color: var(--ink);
 		text-decoration: none;
-		font-size: 0.9375rem;
 		white-space: nowrap;
 	}
 
 	nav a:hover {
-		color: var(--ink);
-		background: var(--surface-2);
+		text-decoration: underline;
 	}
 
 	.tools {
+		margin-left: auto;
 		display: flex;
 		align-items: center;
-		gap: 10px;
+		gap: 16px;
 	}
 
 	.status {
-		display: inline-flex;
-		align-items: center;
-		gap: 7px;
-		font-family: var(--font-mono);
 		font-size: 0.75rem;
-		color: var(--muted);
+		color: var(--ink-2);
 		white-space: nowrap;
 	}
 
-	.status .dot {
-		width: 7px;
-		height: 7px;
-		border-radius: 50%;
-		background: var(--muted);
+	.status.offline {
+		color: var(--alert);
 	}
 
-	.status.online .dot {
-		background: var(--ok);
+	/* Both languages are shown; the one in use is printed in reverse. */
+	.lang {
+		display: inline-flex;
+		border: 1px solid var(--ink);
+		color: var(--ink);
+		text-decoration: none;
+		font-size: 0.875rem;
+		font-weight: 600;
 	}
 
-	.status.offline .dot {
-		background: var(--quake);
-	}
-
-	.theme {
+	.lang span {
 		display: grid;
 		place-items: center;
-		width: 36px;
-		height: 36px;
-		border: 1px solid var(--line);
-		border-radius: 8px;
-		background: var(--surface);
+		min-width: 44px;
+		min-height: 44px;
+	}
+
+	.lang span.on {
+		background: var(--ink);
+		color: var(--paper);
+	}
+
+	.lang:hover span:not(.on) {
+		background: var(--tint);
 	}
 
 	.foot {
-		border-top: 1px solid var(--line);
-		padding: 40px 0 48px;
-		margin-top: 40px;
+		margin-top: 72px;
+		padding: 20px 0 44px;
+		border-top: 1px solid var(--ink);
 	}
 
 	.foot-grid {
 		display: grid;
-		grid-template-columns: 1.4fr 1fr;
-		gap: 24px 48px;
+		grid-template-columns: minmax(0, 1fr) auto;
+		gap: 20px 48px;
+		font-size: 0.875rem;
+	}
+
+	.notes {
+		display: grid;
+		gap: 4px;
+		color: var(--ink-2);
+		max-width: 720px;
 	}
 
 	.foot nav {
-		margin: 0;
-		flex-wrap: wrap;
+		display: grid;
+		gap: 0;
 		align-content: start;
 	}
 
-	.brand.small {
-		font-size: 1rem;
-		margin-bottom: 6px;
+	.foot nav a {
+		min-height: 32px;
+		color: var(--water-ink);
+		text-decoration: underline;
+		text-decoration-thickness: 1px;
 	}
 
-	.muted {
-		color: var(--muted);
-		font-size: 0.9375rem;
-	}
+	@media (max-width: 900px) {
+		/* The wrapped header is too tall to keep pinned on a small screen. */
+		.top {
+			position: static;
+		}
 
-	.fine {
-		grid-column: 1 / -1;
-		font-size: 0.8125rem;
-	}
-
-	@media (max-width: 760px) {
 		.bar {
 			flex-wrap: wrap;
-			gap: 4px 12px;
-			padding: 8px 0;
+			padding: 6px 0;
 		}
 
-		.tools {
-			margin-left: auto;
-		}
-
+		/* Wraps instead of scrolling sideways: no page link is hidden. */
 		nav {
 			order: 3;
 			width: 100%;
-			margin-left: -10px;
-			overflow-x: auto;
+			flex-wrap: wrap;
+			gap: 0 16px;
+			border-top: 1px solid var(--hair);
+		}
+
+		.status {
+			display: none;
 		}
 
 		.foot-grid {
-			grid-template-columns: 1fr;
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.foot nav a {
+			min-height: 44px;
 		}
 	}
 </style>

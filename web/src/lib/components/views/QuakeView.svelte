@@ -1,9 +1,12 @@
 <script lang="ts">
-	import IndonesiaMap from '../IndonesiaMap.svelte';
+	import MapSheet from '../MapSheet.svelte';
 	import { frame, project, type LatLon } from '#lib/geo/project';
-	import { formatWib, parseTime, timeAgo, type Earthquake } from '#lib/api';
+	import type { Earthquake } from '#lib/api';
+	import { formatWib, magnitude, parseTime, quakeRadius, timeAgo } from '#lib/format';
+	import { fill, useMessages } from '#lib/i18n';
 
 	let { quakes, center }: { quakes: Earthquake[]; center?: LatLon } = $props();
+	const i18n = useMessages();
 
 	let picked = $state(0);
 	$effect(() => {
@@ -13,118 +16,128 @@
 	});
 
 	const current = $derived(quakes[picked]);
-	/** Marker radius in screen pixels. */
-	const radius = (magnitude: number) => 4 + Math.max(0, magnitude - 2) * 1.6;
+	// Taller than the country strip, so the map fills the response panel.
 	const box = $derived(
-		quakes.length === 1
-			? frame([[quakes[0].lat, quakes[0].lon]], 14)
-			: frame([...quakes.map((q) => [q.lat, q.lon] as LatLon), ...(center ? [center] : [])], 14)
+		frame([...quakes.map((q) => [q.lat, q.lon] as LatLon), ...(center ? [center] : [])], 16, 1.7)
 	);
 </script>
 
 {#if quakes.length === 0}
-	<p class="empty">No earthquakes matched. Among BMKG's latest records there is none in that area.</p>
+	<p class="empty">{i18n.m.views.noQuakes}</p>
 {:else}
-	<div class="layout">
-		<div class="map">
-			<IndonesiaMap {box} label="Earthquake locations">
-				{#snippet children(unit)}
-					{#if center}
-						{@const [cx, cy] = project(center[0], center[1])}
-						<path d="M{cx - 7 * unit},{cy}H{cx + 7 * unit}M{cx},{cy - 7 * unit}V{cy + 7 * unit}" class="cross" />
-					{/if}
-					{#each quakes as quake, i (i)}
-						{@const [x, y] = project(quake.lat, quake.lon)}
-						<circle
-							cx={x}
-							cy={y}
-							r={radius(quake.magnitude) * unit}
-							class="mark"
-							class:on={i === picked}
-							role="button"
-							tabindex="0"
-							aria-label="Magnitude {quake.magnitude}, {quake.region}"
-							onclick={() => (picked = i)}
-							onkeydown={(e) => e.key === 'Enter' && (picked = i)}
-						/>
-					{/each}
-				{/snippet}
-			</IndonesiaMap>
-		</div>
-
-		<div class="detail">
-			<p class="big"><span class="mono">M {current.magnitude.toFixed(1)}</span> · {current.depth_km} km deep</p>
-			<p>{current.region}</p>
-			<p class="muted">
-				{formatWib(parseTime(current.datetime))} · {timeAgo(parseTime(current.datetime))} ·
-				{current.lat_text}, {current.lon_text}
-			</p>
-			{#if current.distance_km !== undefined}
-				<p class="muted">{current.distance_km.toFixed(0)} km from the search point</p>
-			{/if}
-			{#if current.tsunami_potential}<p class="note">{current.tsunami_potential}</p>{/if}
-			{#if current.felt_report}<p class="muted">Felt: {current.felt_report}</p>{/if}
-			{#if current.shakemap_url}
-				<a href={current.shakemap_url} target="_blank" rel="noopener">Open BMKG shakemap</a>
-			{/if}
-		</div>
+	<div class="map">
+		<MapSheet {box} label={i18n.m.views.quakesLabel}>
+			{#snippet children(unit)}
+				{#if center}
+					{@const [cx, cy] = project(center[0], center[1])}
+					<path d="M{cx - 8 * unit},{cy}H{cx + 8 * unit}M{cx},{cy - 8 * unit}V{cy + 8 * unit}" class="cross" />
+				{/if}
+				<!-- A pointer shortcut only: the rows below select the same earthquakes
+				     from the keyboard. -->
+				{#each quakes as quake, i (i)}
+					{@const [x, y] = project(quake.lat, quake.lon)}
+					<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+					<circle
+						cx={x}
+						cy={y}
+						r={quakeRadius(quake.magnitude) * unit}
+						class="mark"
+						class:on={i === picked}
+						onclick={() => (picked = i)}
+					>
+						<title>{fill(i18n.m.map.quakeLabel, { m: magnitude(quake.magnitude, i18n.m), region: quake.region })}</title>
+					</circle>
+				{/each}
+			{/snippet}
+		</MapSheet>
 	</div>
 
-	{#if quakes.length > 1}
-		<ol class="rows">
-			{#each quakes as quake, i (i)}
-				<li>
-					<button type="button" class:on={i === picked} onclick={() => (picked = i)}>
-						<span class="mono mag">M {quake.magnitude.toFixed(1)}</span>
-						<span class="where">{quake.region}</span>
-						<span class="muted">{timeAgo(parseTime(quake.datetime))}</span>
-					</button>
-				</li>
-			{/each}
-		</ol>
-	{/if}
+	<div class="below" class:single={quakes.length === 1}>
+		<div class="detail">
+			<p class="big">
+				<span class="mono mag">M {magnitude(current.magnitude, i18n.m)}</span>
+				<span class="mono depth">{fill(i18n.m.map.depth, { km: current.depth_km })}</span>
+			</p>
+			<p>{current.region}</p>
+			<p class="fine">
+				{formatWib(parseTime(current.datetime), i18n.m)}, {timeAgo(parseTime(current.datetime), i18n.m)}
+			</p>
+			<p class="fine mono">{current.lat_text}, {current.lon_text}</p>
+			{#if current.distance_km !== undefined}
+				<p class="fine">{fill(i18n.m.views.fromPoint, { km: current.distance_km.toFixed(0) })}</p>
+			{/if}
+			{#if current.tsunami_potential}<p class="fine">{current.tsunami_potential}</p>{/if}
+			{#if current.felt_report}<p class="fine">{fill(i18n.m.map.felt, { text: current.felt_report })}</p>{/if}
+			{#if current.shakemap_url}
+				<p><a href={current.shakemap_url} target="_blank" rel="noopener">{i18n.m.views.shakemap}</a></p>
+			{/if}
+		</div>
+
+		{#if quakes.length > 1}
+			<ol class="rows">
+				{#each quakes as quake, i (i)}
+					<li>
+						<button type="button" class:on={i === picked} onclick={() => (picked = i)}>
+							<span class="mono">M {magnitude(quake.magnitude, i18n.m)}</span>
+							<span class="where">{quake.region}</span>
+							<span class="when">{timeAgo(parseTime(quake.datetime), i18n.m)}</span>
+						</button>
+					</li>
+				{/each}
+			</ol>
+		{/if}
+	</div>
 {/if}
 
 <style>
-	.layout {
+	.map {
+		border: 1px solid var(--ink);
+		padding: 6px 8px 8px 0;
+	}
+
+	.below {
 		display: grid;
-		grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-		gap: 16px;
+		grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+		gap: 16px 28px;
+		margin-top: 14px;
 		align-items: start;
+	}
+
+	.below.single {
+		grid-template-columns: minmax(0, 1fr);
 	}
 
 	.detail {
 		display: grid;
-		gap: 6px;
-		font-size: 0.9375rem;
+		gap: 4px;
 	}
 
 	.big {
-		font-size: 1.25rem;
+		display: flex;
+		gap: 12px;
+		align-items: baseline;
+		flex-wrap: wrap;
+	}
+
+	.mag {
+		font-size: 1.5rem;
 		font-weight: 500;
+		color: var(--alert);
 	}
 
-	.big .mono {
-		color: var(--quake);
-		font-size: 1em;
+	.depth {
+		color: var(--relief);
 	}
 
-	.muted {
-		color: var(--muted);
-		font-size: 0.8125rem;
-	}
-
-	.note {
-		font-size: 0.8125rem;
-		padding: 6px 10px;
-		border-radius: 6px;
-		background: var(--surface-2);
+	.fine {
+		font-size: 0.875rem;
+		color: var(--ink-2);
 	}
 
 	.mark {
-		fill: var(--quake);
-		fill-opacity: 0.5;
-		stroke: var(--surface);
+		fill: var(--alert);
+		fill-opacity: 0.4;
+		stroke: var(--alert);
 		stroke-width: 1;
 		vector-effect: non-scaling-stroke;
 		cursor: pointer;
@@ -144,33 +157,40 @@
 
 	.rows {
 		list-style: none;
-		margin: 14px 0 0;
+		margin: 0;
 		padding: 0;
-		border-top: 1px solid var(--line);
-		max-height: 220px;
+		border-top: 1px solid var(--ink);
+		max-height: 264px;
 		overflow: auto;
 	}
 
 	.rows button {
 		display: grid;
-		grid-template-columns: 64px minmax(0, 1fr) auto;
+		grid-template-columns: 62px minmax(0, 1fr) auto;
 		gap: 10px;
+		align-items: baseline;
 		width: 100%;
-		padding: 7px 8px;
+		min-height: 44px;
+		padding: 6px 8px;
 		border: 0;
-		border-bottom: 1px solid var(--line);
+		border-bottom: 1px solid var(--hair);
 		background: none;
 		text-align: left;
-		font-size: 0.875rem;
+		font-size: 0.9375rem;
 	}
 
-	.rows button:hover,
+	.rows button:hover {
+		background: var(--tint);
+	}
+
+	/* The chosen row is printed in reverse, like a highlighted table line. */
 	.rows button.on {
-		background: var(--surface-2);
+		background: var(--ink);
+		color: var(--paper);
 	}
 
-	.mag {
-		color: var(--quake);
+	.when {
+		font-size: 0.8125rem;
 	}
 
 	.where {
@@ -180,11 +200,11 @@
 	}
 
 	.empty {
-		color: var(--muted);
+		color: var(--ink-2);
 	}
 
 	@media (max-width: 720px) {
-		.layout {
+		.below {
 			grid-template-columns: minmax(0, 1fr);
 		}
 	}

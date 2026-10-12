@@ -49,6 +49,14 @@ export interface Warning {
 	is_expired: boolean;
 }
 
+/** One entry of /v1/nowcast/warnings: an active warning in full. */
+export interface ActiveWarningFull {
+	code: string;
+	province: string;
+	published_at: string;
+	warning: Warning;
+}
+
 export interface ForecastEntry {
 	local_datetime: string;
 	utc_datetime: string;
@@ -125,32 +133,4 @@ export async function getData<T>(path: string, signal?: AbortSignal): Promise<T 
 	} catch {
 		return null;
 	}
-}
-
-/** Earthquake times are UTC without an offset; other timestamps carry one. */
-export function parseTime(value: string): Date {
-	return new Date(/[zZ]|[+-]\d{2}:?\d{2}$/.test(value) ? value : `${value}Z`);
-}
-
-export function timeAgo(date: Date, now: Date = new Date()): string {
-	const seconds = Math.max(0, Math.round((now.getTime() - date.getTime()) / 1000));
-	if (seconds < 60) return 'just now';
-	const minutes = Math.round(seconds / 60);
-	if (minutes < 60) return `${minutes} min ago`;
-	const hours = Math.round(minutes / 60);
-	if (hours < 48) return `${hours} h ago`;
-	return `${Math.round(hours / 24)} days ago`;
-}
-
-const dateTime = new Intl.DateTimeFormat('en-GB', {
-	day: 'numeric',
-	month: 'short',
-	hour: '2-digit',
-	minute: '2-digit',
-	timeZone: 'Asia/Jakarta'
-});
-
-/** Format in Western Indonesia Time, the reference most readers expect. */
-export function formatWib(date: Date): string {
-	return `${dateTime.format(date)} WIB`;
 }

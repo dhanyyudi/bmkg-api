@@ -1,62 +1,32 @@
-@import '@fontsource/ibm-plex-sans/latin-400.css';
-@import '@fontsource/ibm-plex-sans/latin-500.css';
-@import '@fontsource/ibm-plex-sans/latin-600.css';
-@import '@fontsource/ibm-plex-mono/latin-400.css';
-@import '@fontsource/ibm-plex-mono/latin-500.css';
+/* Direction: DESIGN.md. The site is a map sheet after Peta Rupabumi Indonesia. */
+@import '@fontsource-variable/source-sans-3/wght.css';
+@import '@fontsource-variable/source-serif-4/wght-italic.css';
+@import '@fontsource/source-code-pro/latin-400.css';
+@import '@fontsource/source-code-pro/latin-500.css';
 
 :root {
-	--font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-	--font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+	/* One superfamily gives the three voices of a map label: upright for
+	   places, serif italic for water, fixed width for coordinates. */
+	--font-sans: 'Source Sans 3 Variable', 'Helvetica Neue', Arial, sans-serif;
+	--font-serif: 'Source Serif 4 Variable', Georgia, 'Times New Roman', serif;
+	--font-mono: 'Source Code Pro', ui-monospace, Menlo, Consolas, monospace;
 
-	--bg: #f5f6f2;
-	--surface: #ffffff;
-	--surface-2: #eef1ec;
-	--ink: #13201e;
-	--muted: #586a66;
-	--line: #dbe1db;
-	--accent: #0a6b60;
-	--accent-ink: #ffffff;
-	--accent-soft: #dcefeb;
-	--quake: #cf3f2b;
-	--warn: #b96a00;
-	--warn-soft: #fbeed3;
-	--ok: #1b8750;
-	--sea: #e6eeeb;
-	--land: #c5d2cb;
-	--land-id: #0f5a52;
-	--code-bg: #101a19;
-	--code-ink: #dbe9e5;
-	--code-muted: #7f9792;
-	--code-key: #7fd4c6;
-	--code-str: #f2c482;
-	--code-num: #f08f7c;
+	/* Peta Rupabumi conventions: every colour has one job. */
+	--paper: #ffffff;
+	--ink: #111111; /* text, place names, neatlines */
+	--ink-2: #4a4a4a; /* secondary text */
+	--hair: #c4c4c4; /* table and form hairlines */
+	--tint: #f3f3f0; /* code and table heads: unprinted margin */
+	--water: #d7ebf6; /* sea */
+	--water-ink: #1b4aa0; /* water names; links and buttons */
+	--land: #d5e6c3; /* land (vegetation) */
+	--land-edge: #6f9452; /* coastline */
+	--foreign: #ebebe5; /* land outside Indonesia */
+	--relief: #8a5a2b; /* relief: seismogram, depths */
+	--alert: #c1121f; /* what matters: epicentres, warnings, errors */
 
-	--radius: 10px;
-	--shadow: 0 1px 2px rgb(19 32 30 / 6%), 0 8px 24px rgb(19 32 30 / 6%);
-	--page: 1120px;
+	--page: 1180px;
 	color-scheme: light;
-}
-
-:root[data-theme='dark'] {
-	--bg: #0a1110;
-	--surface: #101918;
-	--surface-2: #152120;
-	--ink: #e4eeeb;
-	--muted: #8fa39e;
-	--line: #1f2f2c;
-	--accent: #43c2b1;
-	--accent-ink: #06201c;
-	--accent-soft: #12302c;
-	--quake: #ff6b55;
-	--warn: #f0ab3d;
-	--warn-soft: #2b2212;
-	--ok: #45c486;
-	--sea: #0c1615;
-	--land: #1a2927;
-	--land-id: #2b8f82;
-	--code-bg: #070d0c;
-	--shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 24px rgb(0 0 0 / 25%);
-	color-scheme: dark;
 }
 
 *,
@@ -67,17 +37,17 @@
 
 html {
 	scroll-behavior: smooth;
-	scroll-padding-top: 72px;
+	scroll-padding-top: 76px;
 	-webkit-text-size-adjust: 100%;
 }
 
 body {
 	margin: 0;
-	background: var(--bg);
+	background: var(--paper);
 	color: var(--ink);
 	font-family: var(--font-sans);
-	font-size: 16px;
-	line-height: 1.55;
+	font-size: 17px;
+	line-height: 1.5;
 	-webkit-font-smoothing: antialiased;
 }
 
@@ -88,7 +58,6 @@ h4 {
 	margin: 0;
 	font-weight: 600;
 	line-height: 1.15;
-	letter-spacing: -0.015em;
 	text-wrap: balance;
 }
 
@@ -98,8 +67,13 @@ p {
 }
 
 a {
-	color: var(--accent);
+	color: var(--water-ink);
 	text-underline-offset: 3px;
+	text-decoration-thickness: 1px;
+}
+
+a:hover {
+	text-decoration-thickness: 2px;
 }
 
 code,
@@ -110,11 +84,16 @@ pre,
 	font-size: 0.875em;
 }
 
+.mono {
+	font-variant-numeric: tabular-nums;
+}
+
 button,
 input,
 select {
 	font: inherit;
 	color: inherit;
+	border-radius: 0;
 }
 
 button {
@@ -122,128 +101,122 @@ button {
 }
 
 :focus-visible {
-	outline: 2px solid var(--accent);
+	outline: 2px solid var(--ink);
 	outline-offset: 2px;
-	border-radius: 4px;
 }
 
-.wrap {
+.sheet {
 	width: min(var(--page), 100% - 40px);
 	margin-inline: auto;
 }
 
-.eyebrow {
-	font-family: var(--font-mono);
-	font-size: 0.75rem;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	color: var(--muted);
+/* A block of the sheet: its name in the margin, its content beside it. */
+.block {
+	display: grid;
+	grid-template-columns: 200px minmax(0, 1fr);
+	gap: 16px 40px;
+	padding-top: 18px;
+	margin-top: 64px;
+	border-top: 1px solid var(--ink);
 }
 
-.card {
-	background: var(--surface);
-	border: 1px solid var(--line);
-	border-radius: var(--radius);
+.block > header {
+	display: grid;
+	gap: 8px;
+	align-content: start;
+}
+
+.block > header h2 {
+	font-size: 1.3125rem;
+}
+
+.block > header p {
+	font-size: 0.9375rem;
+	color: var(--ink-2);
 }
 
 .btn {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: 8px;
-	min-height: 42px;
+	min-height: 44px;
 	padding: 0 18px;
-	border: 1px solid var(--line);
-	border-radius: 8px;
-	background: var(--surface);
-	font-weight: 500;
-	text-decoration: none;
+	border: 1px solid var(--ink);
+	background: var(--paper);
 	color: var(--ink);
-	transition:
-		background 0.15s,
-		border-color 0.15s,
-		transform 0.05s;
+	font-weight: 600;
+	text-decoration: none;
 }
 
 .btn:hover {
-	border-color: var(--muted);
-}
-
-.btn:active {
-	transform: translateY(1px);
+	background: var(--tint);
 }
 
 .btn.primary {
-	background: var(--accent);
-	border-color: var(--accent);
-	color: var(--accent-ink);
+	background: var(--water-ink);
+	border-color: var(--water-ink);
+	color: #ffffff;
 }
 
 .btn.primary:hover {
-	filter: brightness(1.08);
+	background: #153a80;
 }
 
 .btn.small {
-	min-height: 32px;
+	min-height: 34px;
 	padding: 0 12px;
-	font-size: 0.875rem;
+	font-size: 0.9375rem;
+	font-weight: 400;
+}
+
+@media (pointer: coarse), (max-width: 900px) {
+	.btn.small {
+		min-height: 44px;
+	}
+}
+
+.btn:disabled {
+	color: var(--ink-2);
+	border-color: var(--hair);
+	background: var(--tint);
+	cursor: not-allowed;
 }
 
 .method {
 	font-family: var(--font-mono);
-	font-size: 0.6875rem;
+	font-size: 0.75rem;
 	font-weight: 500;
-	letter-spacing: 0.04em;
-	padding: 2px 6px;
-	border-radius: 4px;
-	background: var(--accent-soft);
-	color: var(--accent);
+	color: var(--ink-2);
 }
 
-.section {
-	padding: 72px 0;
+.table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.9375rem;
 }
 
-.section-head {
-	display: grid;
-	gap: 10px;
-	margin-bottom: 32px;
-	max-width: 640px;
+.table th {
+	text-align: left;
+	font-weight: 600;
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--ink);
+	vertical-align: bottom;
 }
 
-.section-head h2 {
-	font-size: clamp(1.6rem, 3vw, 2.1rem);
+.table td {
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--hair);
+	vertical-align: top;
 }
 
-.section-head p {
-	color: var(--muted);
-	font-size: 1.05rem;
+.table-scroll {
+	overflow-x: auto;
+	/* Contains the visually hidden labels inside the table: positioned against
+	   the page instead, they would widen it on narrow screens. */
+	position: relative;
 }
 
-.sr-only {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-	clip-path: inset(50%);
-	white-space: nowrap;
-}
-
-@media (prefers-reduced-motion: reduce) {
-	html {
-		scroll-behavior: auto;
-	}
-
-	*,
-	*::before,
-	*::after {
-		animation-duration: 0.01ms !important;
-		animation-iteration-count: 1 !important;
-		transition-duration: 0.01ms !important;
-	}
-}
-
-/* Long-form pages: docs, MCP setup, self-hosting */
+/* Long-form pages */
 .prose {
 	display: grid;
 	gap: 14px;
@@ -251,19 +224,16 @@ button {
 }
 
 .prose h2 {
-	font-size: 1.5rem;
-	margin-top: 28px;
+	font-size: 1.375rem;
+	margin-top: 36px;
+	padding-top: 14px;
+	border-top: 1px solid var(--ink);
 	scroll-margin-top: 80px;
 }
 
 .prose h3 {
-	font-size: 1.125rem;
+	font-size: 1.0625rem;
 	margin-top: 12px;
-}
-
-.prose p,
-.prose li {
-	color: var(--ink);
 }
 
 .prose ul,
@@ -275,53 +245,57 @@ button {
 }
 
 .prose :not(pre) > code {
-	padding: 1px 5px;
-	border-radius: 4px;
-	background: var(--surface-2);
-}
-
-.table {
-	width: 100%;
-	border-collapse: collapse;
-	font-size: 0.9375rem;
-}
-
-.table th {
-	text-align: left;
-	font-weight: 500;
-	font-size: 0.8125rem;
-	color: var(--muted);
-	padding: 6px 10px;
-	border-bottom: 1px solid var(--line);
-}
-
-.table td {
-	padding: 8px 10px;
-	border-bottom: 1px solid var(--line);
-	vertical-align: top;
-}
-
-.table-scroll {
-	overflow-x: auto;
+	padding: 1px 4px;
+	background: var(--tint);
 }
 
 .page-head {
-	padding: 48px 0 8px;
+	padding: 44px 0 4px;
 	display: grid;
 	gap: 12px;
-	max-width: 720px;
+	max-width: 760px;
 }
 
 .page-head h1 {
-	font-size: clamp(1.9rem, 4vw, 2.6rem);
-	letter-spacing: -0.025em;
+	font-size: clamp(1.9rem, 4vw, 2.5rem);
 }
 
 .page-head p {
 	font-size: 1.125rem;
-	color: var(--muted);
+	color: var(--ink-2);
 }
 
 .page-body {
-	padding: 24px 0 56px;
+	padding: 8px 0 56px;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+	.block {
+		grid-template-columns: minmax(0, 1fr);
+		margin-top: 48px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-delay: 0ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
 }

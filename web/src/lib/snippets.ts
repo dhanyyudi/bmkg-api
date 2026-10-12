@@ -1,101 +1,92 @@
-import { MCP_URL, PUBLIC_ORIGIN } from './api';
+import { MCP_URL } from './api';
 
-const url = `${PUBLIC_ORIGIN}/v1/earthquake/latest`;
-
-export interface Snippet {
+export interface CodeLanguage {
 	id: string;
 	label: string;
-	code: string;
 }
 
-export const CODE_SAMPLES: Snippet[] = [
-	{ id: 'curl', label: 'cURL', code: `curl ${url}` },
-	{
-		id: 'js',
-		label: 'JavaScript',
-		code: `const response = await fetch('${url}');
+export const CODE_LANGUAGES: CodeLanguage[] = [
+	{ id: 'curl', label: 'cURL' },
+	{ id: 'js', label: 'JavaScript' },
+	{ id: 'python', label: 'Python' },
+	{ id: 'go', label: 'Go' },
+	{ id: 'php', label: 'PHP' },
+	{ id: 'ruby', label: 'Ruby' },
+	{ id: 'dart', label: 'Dart' }
+];
+
+/** Code that sends one GET request and reads the `data` field of the answer. */
+export function codeFor(language: string, url: string): string {
+	switch (language) {
+		case 'js':
+			return `const response = await fetch('${url}');
+if (!response.ok) throw new Error(\`HTTP \${response.status}\`);
 const { data } = await response.json();
 
-console.log(\`M \${data.magnitude} · \${data.region}\`);`
-	},
-	{
-		id: 'python',
-		label: 'Python',
-		code: `import requests
+console.log(data);`;
+		case 'python':
+			return `import requests
 
-data = requests.get("${url}", timeout=10).json()["data"]
+response = requests.get("${url}", timeout=10)
+response.raise_for_status()
+data = response.json()["data"]
 
-print(f"M {data['magnitude']} · {data['region']}")`
-	},
-	{
-		id: 'go',
-		label: 'Go',
-		code: `resp, err := http.Get("${url}")
+print(data)`;
+		case 'go':
+			return `resp, err := http.Get("${url}")
 if err != nil {
 	log.Fatal(err)
 }
 defer resp.Body.Close()
 
 var result struct {
-	Data struct {
-		Magnitude float64 \`json:"magnitude"\`
-		Region    string  \`json:"region"\`
-	} \`json:"data"\`
+	Data json.RawMessage \`json:"data"\`
 }
-json.NewDecoder(resp.Body).Decode(&result)
-fmt.Printf("M %.1f · %s\\n", result.Data.Magnitude, result.Data.Region)`
-	},
-	{
-		id: 'php',
-		label: 'PHP',
-		code: `$result = json_decode(file_get_contents('${url}'), true);
-$data = $result['data'];
+if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	log.Fatal(err)
+}
+fmt.Println(string(result.Data))`;
+		case 'php':
+			return `$body = file_get_contents('${url}');
+$data = json_decode($body, true)['data'];
 
-echo "M {$data['magnitude']} · {$data['region']}";`
-	},
-	{
-		id: 'ruby',
-		label: 'Ruby',
-		code: `require 'net/http'
+print_r($data);`;
+		case 'ruby':
+			return `require 'net/http'
 require 'json'
 
-data = JSON.parse(Net::HTTP.get(URI('${url}')))['data']
+body = Net::HTTP.get(URI('${url}'))
+data = JSON.parse(body)['data']
 
-puts "M #{data['magnitude']} · #{data['region']}"`
-	},
-	{
-		id: 'dart',
-		label: 'Dart',
-		code: `import 'dart:convert';
+puts data`;
+		case 'dart':
+			return `import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 final response = await http.get(Uri.parse('${url}'));
 final data = jsonDecode(response.body)['data'];
 
-print('M \${data['magnitude']} · \${data['region']}');`
+print(data);`;
+		default:
+			return `curl "${url}"`;
 	}
-];
+}
 
-export const MCP_CLIENTS: (Snippet & { note: string; lang: 'bash' | 'json' })[] = [
-	{
-		id: 'claude-code',
-		label: 'Claude Code',
-		lang: 'bash',
-		note: 'One command. Or install the plugin: claude plugin marketplace add dhanyyudi/bmkg-api, then claude plugin install bmkg@bmkg-api.',
-		code: `claude mcp add --transport http bmkg ${MCP_URL}`
-	},
-	{
-		id: 'claude-desktop',
-		label: 'Claude Desktop',
-		lang: 'bash',
-		note: 'Settings → Connectors → Add custom connector, then paste this URL. Works on claude.ai too.',
-		code: MCP_URL
-	},
+export interface McpClient {
+	id: 'claude-code' | 'claude-desktop' | 'cursor' | 'vscode' | 'stdio' | 'local';
+	/** Product names are not translated; the last two get a label from the dictionary. */
+	label: string;
+	lang: 'bash' | 'json' | 'text';
+	code: string;
+}
+
+export const MCP_CLIENTS: McpClient[] = [
+	{ id: 'claude-code', label: 'Claude Code', lang: 'bash', code: `claude mcp add --transport http bmkg ${MCP_URL}` },
+	{ id: 'claude-desktop', label: 'Claude Desktop', lang: 'text', code: MCP_URL },
 	{
 		id: 'cursor',
 		label: 'Cursor',
 		lang: 'json',
-		note: 'Add to ~/.cursor/mcp.json.',
 		code: `{
   "mcpServers": {
     "bmkg": {
@@ -104,18 +95,11 @@ export const MCP_CLIENTS: (Snippet & { note: string; lang: 'bash' | 'json' })[] 
   }
 }`
 	},
-	{
-		id: 'vscode',
-		label: 'VS Code',
-		lang: 'bash',
-		note: 'Adds the server to your user profile.',
-		code: `code --add-mcp '{"name":"bmkg","type":"http","url":"${MCP_URL}"}'`
-	},
+	{ id: 'vscode', label: 'VS Code', lang: 'bash', code: `code --add-mcp '{"name":"bmkg","type":"http","url":"${MCP_URL}"}'` },
 	{
 		id: 'stdio',
-		label: 'Other clients',
+		label: '',
 		lang: 'json',
-		note: 'For clients that only speak stdio: bridge to the hosted server with mcp-remote.',
 		code: `{
   "mcpServers": {
     "bmkg": {
@@ -127,9 +111,8 @@ export const MCP_CLIENTS: (Snippet & { note: string; lang: 'bash' | 'json' })[] 
 	},
 	{
 		id: 'local',
-		label: 'Run locally',
+		label: '',
 		lang: 'json',
-		note: 'Runs the server on your machine with uv. Needs Python 3.12 or newer.',
 		code: `{
   "mcpServers": {
     "bmkg": {
@@ -141,18 +124,25 @@ export const MCP_CLIENTS: (Snippet & { note: string; lang: 'bash' | 'json' })[] 
 	}
 ];
 
-export const MCP_TOOLS = [
-	{ name: 'get_latest_earthquake', args: '', returns: 'The most recent earthquake' },
-	{ name: 'get_recent_earthquakes', args: '', returns: 'The 15 most recent earthquakes of M 5.0+' },
-	{ name: 'get_felt_earthquakes', args: '', returns: 'The 15 most recent earthquakes people felt' },
-	{ name: 'get_nearby_earthquakes', args: 'latitude, longitude, radius_km', returns: 'Recent earthquakes around a point' },
-	{ name: 'get_weather_forecast', args: 'adm4_code', returns: '3-day forecast in 3-hour steps' },
-	{ name: 'get_current_weather', args: 'adm4_code', returns: 'Forecast for the current 3-hour slot' },
-	{ name: 'get_weather_warnings', args: 'language', returns: 'Active severe weather warnings by province' },
-	{ name: 'check_location_warnings', args: 'location, language', returns: 'Active warnings that mention a place' },
-	{ name: 'search_regions', args: 'query, limit', returns: 'Regions matching a name, with codes' },
-	{ name: 'get_provinces', args: '', returns: 'Provinces with 2-digit codes' },
-	{ name: 'get_districts', args: 'province_code', returns: 'Kabupaten and kota of a province' },
-	{ name: 'get_subdistricts', args: 'district_code', returns: 'Kecamatan of a district' },
-	{ name: 'get_villages', args: 'subdistrict_code', returns: 'Kelurahan and desa, with adm4 codes' }
+export const MCP_TOOLS: { name: string; args: string }[] = [
+	{ name: 'get_latest_earthquake', args: '' },
+	{ name: 'get_recent_earthquakes', args: '' },
+	{ name: 'get_felt_earthquakes', args: '' },
+	{ name: 'get_nearby_earthquakes', args: 'latitude, longitude, radius_km' },
+	{ name: 'get_weather_forecast', args: 'adm4_code' },
+	{ name: 'get_current_weather', args: 'adm4_code' },
+	{ name: 'get_weather_warnings', args: 'language' },
+	{ name: 'check_location_warnings', args: 'location, language' },
+	{ name: 'search_regions', args: 'query, limit' },
+	{ name: 'get_provinces', args: '' },
+	{ name: 'get_districts', args: 'province_code' },
+	{ name: 'get_subdistricts', args: 'district_code' },
+	{ name: 'get_villages', args: 'subdistrict_code' }
+];
+
+/** Real questions the tools can answer, in the language users ask them. */
+export const MCP_PROMPTS = [
+	'Gempa terbaru di Indonesia?',
+	'Cuaca 3 hari ke depan di Jakarta Selatan?',
+	'Ada peringatan cuaca di Yogyakarta?'
 ];

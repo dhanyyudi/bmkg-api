@@ -1,9 +1,12 @@
 <script lang="ts">
-	import IndonesiaMap from '../IndonesiaMap.svelte';
+	import MapSheet from '../MapSheet.svelte';
 	import { frame, ringPath, warningRings, type LatLon } from '#lib/geo/project';
-	import { formatWib, parseTime, type Warning } from '#lib/api';
+	import type { Warning } from '#lib/api';
+	import { formatWib, parseTime } from '#lib/format';
+	import { fill, useMessages } from '#lib/i18n';
 
 	let { warnings, emptyText }: { warnings: Warning[]; emptyText?: string } = $props();
+	const i18n = useMessages();
 
 	let picked = $state(0);
 	$effect(() => {
@@ -15,185 +18,185 @@
 	const rings = $derived(
 		warning ? warning.areas.flatMap((area) => warningRings(area.polygon).map((ring) => ({ area: area.name, ring }))) : []
 	);
-	const box = $derived(frame(rings.flatMap((r) => r.ring as LatLon[]), 2.5));
+	const box = $derived(frame(rings.flatMap((r) => r.ring as LatLon[]), 3, 1.7));
 	let hoveredArea = $state<string | null>(null);
 </script>
 
 {#if !warning}
-	<p class="empty">{emptyText ?? 'No active warning.'}</p>
+	<p class="empty">{emptyText ?? i18n.m.views.noWarning}</p>
 {:else}
 	{#if warnings.length > 1}
-		<div class="tabs" role="tablist">
+		<div class="pick">
 			{#each warnings as item, i (item.identifier)}
-				<button type="button" role="tab" aria-selected={i === picked} class:on={i === picked} onclick={() => (picked = i)}>
+				<button type="button" aria-pressed={i === picked} class:on={i === picked} onclick={() => (picked = i)}>
 					{item.areas[0]?.name ?? item.event}
 				</button>
 			{/each}
 		</div>
 	{/if}
 
-	<div class="layout">
+	<p class="head">
+		<strong>{warning.event}</strong>
+		<span class="severity mono">{warning.severity}</span>
+	</p>
+	<p class="headline">{warning.headline}</p>
+
+	{#if rings.length}
+		<div class="map">
+			<MapSheet {box} label={i18n.m.views.areasLabel}>
+				{#snippet children()}
+					{#each rings as item, i (i)}
+						<path
+							d={ringPath(item.ring)}
+							class="zone"
+							class:on={hoveredArea === item.area}
+							role="img"
+							aria-label={item.area}
+							onpointerenter={() => (hoveredArea = item.area)}
+							onpointerleave={() => (hoveredArea = null)}
+						/>
+					{/each}
+				{/snippet}
+			</MapSheet>
+		</div>
+		<p class="caption" aria-live="polite">
+			{hoveredArea ?? fill(i18n.m.views.areasCount, { n: rings.length })}
+		</p>
+	{:else}
+		<p class="empty">{i18n.m.views.noPolygon}</p>
+	{/if}
+
+	<div class="below">
 		<div class="text">
-			<p class="head">
-				<strong>{warning.event}</strong>
-				<span class="badge">{warning.severity}</span>
-			</p>
-			<p class="headline">{warning.headline}</p>
-			<p class="desc">{warning.description}</p>
+			<p>{warning.description}</p>
 			<dl>
-				<div><dt>Effective</dt><dd>{formatWib(parseTime(warning.effective))}</dd></div>
-				<div><dt>Expires</dt><dd>{formatWib(parseTime(warning.expires))}</dd></div>
-				<div><dt>Urgency</dt><dd>{warning.urgency}</dd></div>
-				<div><dt>Certainty</dt><dd>{warning.certainty}</dd></div>
+				<div><dt>{i18n.m.views.effective}</dt><dd>{formatWib(parseTime(warning.effective), i18n.m)}</dd></div>
+				<div><dt>{i18n.m.views.expires}</dt><dd>{formatWib(parseTime(warning.expires), i18n.m)}</dd></div>
+				<div><dt>{i18n.m.views.urgency}</dt><dd>{warning.urgency}</dd></div>
+				<div><dt>{i18n.m.views.certainty}</dt><dd>{warning.certainty}</dd></div>
 			</dl>
 		</div>
-
-		<div class="visual">
-			{#if rings.length}
-				<IndonesiaMap {box} label="Areas covered by the warning">
-					{#snippet children()}
-						{#each rings as item, i (i)}
-							<path
-								d={ringPath(item.ring)}
-								class="zone"
-								class:on={hoveredArea === item.area}
-								role="img"
-								aria-label={item.area}
-								onpointerenter={() => (hoveredArea = item.area)}
-								onpointerleave={() => (hoveredArea = null)}
-							/>
-						{/each}
-					{/snippet}
-				</IndonesiaMap>
-				<p class="caption">
-					{hoveredArea ?? `${rings.length} warning ${rings.length === 1 ? 'area' : 'areas'} · hover for the name`}
-				</p>
-			{:else}
-				<p class="empty">This warning has no polygon data.</p>
-			{/if}
-			{#if warning.infographic_url}
-				<a class="info" href={warning.infographic_url} target="_blank" rel="noopener">
-					<img src={warning.infographic_url} alt="BMKG infographic for this warning" loading="lazy" />
-				</a>
-			{/if}
-		</div>
+		{#if warning.infographic_url}
+			<a class="info" href={warning.infographic_url} target="_blank" rel="noopener">
+				<img src={warning.infographic_url} alt={i18n.m.views.infographic} loading="lazy" />
+			</a>
+		{/if}
 	</div>
 {/if}
 
 <style>
-	.tabs {
+	.pick {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 6px;
 		margin-bottom: 12px;
 	}
 
-	.tabs button {
-		padding: 4px 10px;
-		border-radius: 999px;
-		border: 1px solid var(--line);
-		background: none;
-		font-size: 0.8125rem;
+	.pick button {
+		min-height: 36px;
+		padding: 0 12px;
+		border: 1px solid var(--ink);
+		background: var(--paper);
+		font-size: 0.9375rem;
 	}
 
-	.tabs button.on {
-		background: var(--warn-soft);
-		border-color: var(--warn);
-		color: var(--warn);
+	.pick button.on {
+		background: var(--ink);
+		color: var(--paper);
 	}
 
-	.layout {
+	.head {
+		display: flex;
+		align-items: baseline;
+		gap: 12px;
+		flex-wrap: wrap;
+		font-size: 1.125rem;
+	}
+
+	/* Severity is the warning's own classification, so it carries the alert red. */
+	.severity {
+		color: var(--alert);
+		font-size: 0.875rem;
+	}
+
+	.headline {
+		color: var(--ink-2);
+		margin-bottom: 10px;
+	}
+
+	.map {
+		border: 1px solid var(--ink);
+		padding: 6px 8px 8px 0;
+	}
+
+	.zone {
+		fill: var(--alert);
+		fill-opacity: 0.28;
+		stroke: var(--alert);
+		stroke-width: 1.25;
+		vector-effect: non-scaling-stroke;
+	}
+
+	.zone.on {
+		fill-opacity: 0.6;
+	}
+
+	.caption {
+		font-size: 0.875rem;
+		color: var(--ink-2);
+		min-height: 1.5em;
+		margin-top: 6px;
+	}
+
+	.below {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-		gap: 18px;
+		grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+		gap: 16px 28px;
+		margin-top: 10px;
 		align-items: start;
 	}
 
 	.text {
 		display: grid;
-		gap: 8px;
-		font-size: 0.9375rem;
-	}
-
-	.head {
-		display: flex;
-		align-items: center;
 		gap: 10px;
-		font-size: 1.0625rem;
-	}
-
-	.badge {
-		font-size: 0.75rem;
-		padding: 2px 8px;
-		border-radius: 999px;
-		background: var(--warn-soft);
-		color: var(--warn);
-	}
-
-	.headline {
-		color: var(--muted);
-	}
-
-	.desc {
-		font-size: 0.875rem;
+		font-size: 0.9375rem;
 	}
 
 	dl {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: 8px 16px;
-		margin: 4px 0 0;
+		margin: 0;
 		padding-top: 10px;
-		border-top: 1px solid var(--line);
+		border-top: 1px solid var(--ink);
 	}
 
 	dt {
-		font-size: 0.75rem;
-		color: var(--muted);
+		font-size: 0.8125rem;
+		color: var(--ink-2);
 	}
 
 	dd {
 		margin: 0;
-		font-size: 0.875rem;
-	}
-
-	.visual {
-		display: grid;
-		gap: 8px;
-	}
-
-	.zone {
-		fill: var(--warn);
-		fill-opacity: 0.4;
-		stroke: var(--warn);
-		stroke-width: 1.5;
-		vector-effect: non-scaling-stroke;
-	}
-
-	.zone.on {
-		fill-opacity: 0.75;
-	}
-
-	.caption {
-		font-size: 0.8125rem;
-		color: var(--muted);
-		min-height: 1.4em;
 	}
 
 	.info img {
 		display: block;
 		width: 100%;
-		border-radius: 8px;
-		border: 1px solid var(--line);
+		border: 1px solid var(--ink);
 	}
 
 	.empty {
-		color: var(--muted);
+		color: var(--ink-2);
 	}
 
 	@media (max-width: 720px) {
-		.layout {
+		.below {
 			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.pick button {
+			min-height: 44px;
 		}
 	}
 </style>

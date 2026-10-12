@@ -122,6 +122,10 @@ class TestAPIFeatures:
         ("/docs", "/docs/"),
         ("/self-host", "/self-host/"),
         ("/mcp-setup", "/mcp-setup/"),
+        ("/en", "/en/"),
+        ("/en/docs", "/en/docs/"),
+        ("/en/self-host", "/en/self-host/"),
+        ("/en/mcp-setup", "/en/mcp-setup/"),
     ])
     def test_old_page_urls_redirect(self, client, old, new):
         """Test old and bare page URLs redirect with a relative Location."""

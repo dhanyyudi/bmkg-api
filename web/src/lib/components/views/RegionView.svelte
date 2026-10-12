@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Region } from '#lib/api';
+	import { useMessages } from '#lib/i18n';
 
 	interface Props {
 		regions: Region[];
@@ -8,84 +9,68 @@
 	}
 
 	let { regions, onopen }: Props = $props();
+	const i18n = useMessages();
 
-	const depth = (code: string) => code.split('.').length;
-
-	// What you can do next with a code depends on its level.
+	// What comes next depends on the level of the code.
 	function next(code: string): { label: string; endpoint: string; params: Record<string, string> } {
-		switch (depth(code)) {
+		switch (code.split('.').length) {
 			case 1:
-				return { label: 'Districts', endpoint: 'wilayah-districts', params: { province: code } };
+				return { label: i18n.m.views.toDistricts, endpoint: 'wilayah-districts', params: { province: code } };
 			case 2:
-				return { label: 'Subdistricts', endpoint: 'wilayah-subdistricts', params: { district: code } };
+				return { label: i18n.m.views.toSubdistricts, endpoint: 'wilayah-subdistricts', params: { district: code } };
 			case 3:
-				return { label: 'Villages', endpoint: 'wilayah-villages', params: { subdistrict: code } };
+				return { label: i18n.m.views.toVillages, endpoint: 'wilayah-villages', params: { subdistrict: code } };
 			default:
-				return { label: 'Forecast', endpoint: 'weather', params: { adm4: code } };
+				return { label: i18n.m.views.toForecast, endpoint: 'weather', params: { adm4: code } };
 		}
 	}
 </script>
 
 {#if regions.length === 0}
-	<p class="empty">No region matched.</p>
+	<p class="empty">{i18n.m.views.noRegion}</p>
 {:else}
-	<table>
-		<thead>
-			<tr><th>Code</th><th>Name</th><th><span class="sr-only">Next step</span></th></tr>
-		</thead>
-		<tbody>
-			{#each regions as region (region.code)}
-				{@const step = next(region.code)}
+	<div class="table-scroll">
+		<table class="table">
+			<thead>
 				<tr>
-					<td class="mono">{region.code}</td>
-					<td>
-						{region.name}
-						{#if region.full_path}<span class="path">{region.full_path}</span>{/if}
-					</td>
-					<td class="act">
-						<button type="button" class="btn small" onclick={() => onopen(step.endpoint, step.params)}>
-							{step.label} →
-						</button>
-					</td>
+					<th>{i18n.m.views.code}</th>
+					<th>{i18n.m.views.name}</th>
+					<th>{i18n.m.views.next}</th>
 				</tr>
-			{/each}
-		</tbody>
-	</table>
+			</thead>
+			<tbody>
+				{#each regions as region (region.code)}
+					{@const step = next(region.code)}
+					<tr>
+						<td class="mono">{region.code}</td>
+						<td>
+							{region.name}
+							{#if region.full_path}<span class="path">{region.full_path}</span>{/if}
+						</td>
+						<td>
+							<button type="button" class="btn small" onclick={() => onopen(step.endpoint, step.params)}>
+								{step.label}
+							</button>
+						</td>
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</div>
 {/if}
 
 <style>
-	table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.875rem;
-	}
-
-	th {
-		text-align: left;
-		font-weight: 500;
-		font-size: 0.75rem;
-		color: var(--muted);
-		padding: 0 8px 6px;
-	}
-
 	td {
-		padding: 6px 8px;
-		border-top: 1px solid var(--line);
 		vertical-align: middle;
 	}
 
 	.path {
 		display: block;
-		font-size: 0.75rem;
-		color: var(--muted);
-	}
-
-	.act {
-		text-align: right;
-		white-space: nowrap;
+		font-size: 0.8125rem;
+		color: var(--ink-2);
 	}
 
 	.empty {
-		color: var(--muted);
+		color: var(--ink-2);
 	}
 </style>

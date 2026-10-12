@@ -8,10 +8,17 @@ export const explorer = $state({
 	runRequest: 0
 });
 
-/** Select an endpoint, fill in parameters, run it and bring the explorer into view. */
-export function openInExplorer(endpoint: string, params: Record<string, string> = {}) {
+/**
+ * Select an endpoint, fill in parameters, run it and bring the explorer into view.
+ * A click glides there; a link that opens the page on the explorer jumps.
+ */
+export function openInExplorer(
+	endpoint: string,
+	params: Record<string, string> = {},
+	behavior: ScrollBehavior = 'smooth'
+) {
 	explorer.endpoint = endpoint;
 	Object.assign(explorer.params, params);
 	explorer.runRequest += 1;
-	document.getElementById('explorer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	document.getElementById('explorer')?.scrollIntoView({ behavior, block: 'start' });
 }

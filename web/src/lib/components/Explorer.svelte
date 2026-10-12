@@ -12,39 +12,39 @@
 		PUBLIC_ORIGIN,
 		getData,
 		request,
-		timeAgo,
-		parseTime,
 		type ActiveWarning,
+		type ActiveWarningFull,
 		type ApiResult,
 		type Envelope
 	} from '#lib/api';
+	import { parseTime, timeAgo } from '#lib/format';
+	import { fill, useMessages } from '#lib/i18n';
+	import { CODE_LANGUAGES, codeFor } from '#lib/snippets';
 
-	type Tab = 'preview' | 'json' | 'headers';
+	type Tab = 'preview' | 'json' | 'headers' | 'code';
+	const TABS: Tab[] = ['preview', 'json', 'headers', 'code'];
+
+	const i18n = useMessages();
 
 	let result = $state<ApiResult | null>(null);
 	let resultEndpoint = $state('');
 	let loading = $state(false);
-	let networkError = $state('');
+	let networkError = $state(false);
 	let tab = $state<Tab>('preview');
 	let alerts = $state<ActiveWarning[] | null>(null);
+	let codeLanguage = $state('curl');
 
 	const endpoint = $derived(endpointById(explorer.endpoint));
 	const path = $derived(endpoint.path(explorer.params));
 	const incomplete = $derived(path.includes('%7B') || path.includes('{'));
 	const data = $derived(result?.ok ? (result.body as Envelope<any>).data : null);
 
-	const HEADER_NOTES: Record<string, string> = {
-		'cache-control': 'How long this response may be reused',
-		'cf-cache-status': 'HIT means Cloudflare answered without reaching the server',
-		age: 'Seconds this copy has spent in a cache',
-		'x-cache': "The server's own cache: HIT or MISS",
-		'x-cache-ttl': "Seconds until the server asks BMKG again",
-		'x-ratelimit-limit': 'Requests allowed per minute',
-		'x-ratelimit-remaining': 'Requests left in the current minute',
-		'content-type': 'Format of the body'
-	};
 	const shownHeaders = $derived(
-		result ? Object.keys(HEADER_NOTES).filter((name) => name in result!.headers) : []
+		result
+			? (Object.keys(i18n.m.explorer.headerNotes) as (keyof typeof i18n.m.explorer.headerNotes)[]).filter(
+					(name) => name in result!.headers
+				)
+			: []
 	);
 
 	async function loadAlerts() {
@@ -66,17 +66,17 @@
 		if (target.includes('{') || target.includes('%7B')) return;
 
 		loading = true;
-		networkError = '';
+		networkError = false;
 		try {
 			const response = await request(target);
 			if (ticket !== latestRun) return;
 			result = response;
 			resultEndpoint = requested.id;
-			tab = 'preview';
+			if (tab !== 'code') tab = 'preview';
 		} catch {
 			if (ticket !== latestRun) return;
 			result = null;
-			networkError = 'The request could not be sent. Check your connection and try again.';
+			networkError = true;
 		}
 		loading = false;
 	}
@@ -86,7 +86,7 @@
 		latestRun++; // a response still on its way belongs to the previous endpoint
 		loading = false;
 		result = null;
-		networkError = '';
+		networkError = false;
 		if (endpointById(id).params.some((p) => p.kind === 'alert') && alerts === null) loadAlerts();
 	}
 
@@ -100,25 +100,13 @@
 	});
 
 	onMount(() => {
+		// Warning text follows the page language unless it is changed here.
+		explorer.params.lang = i18n.m.apiLang;
 		run();
 	});
 </script>
 
-<div class="explorer card">
-	<div class="side">
-		{#each GROUPS as group (group)}
-			<div class="group">
-				<p class="eyebrow">{group}</p>
-				{#each ENDPOINTS.filter((e) => e.group === group) as item (item.id)}
-					<button type="button" class="endpoint" class:on={item.id === endpoint.id} onclick={() => select(item.id)}>
-						<span class="mono path">{item.template.replace('/v1', '')}</span>
-						<span class="summary">{item.summary}</span>
-					</button>
-				{/each}
-			</div>
-		{/each}
-	</div>
-
+<div class="explorer">
 	<div class="main">
 		<form
 			class="request"
@@ -127,27 +115,41 @@
 				run();
 			}}
 		>
-			{#if endpoint.params.length}
-				<div class="params">
-					{#each endpoint.params as param (param.name)}
-						<label for="p-{param.name}">
-							<span>{param.label}</span>
+			<div class="params">
+				<label for="p-endpoint" class="pick">
+					<span>{i18n.m.explorer.endpoints}</span>
+					<select id="p-endpoint" value={endpoint.id} onchange={(event) => select(event.currentTarget.value)}>
+						{#each GROUPS as group (group)}
+							<optgroup label={i18n.m.groups[group]}>
+								{#each ENDPOINTS.filter((e) => e.group === group) as item (item.id)}
+									<option value={item.id}>{item.template} · {i18n.m.endpoints[item.id].summary}</option>
+								{/each}
+							</optgroup>
+						{/each}
+					</select>
+				</label>
+				{#each endpoint.params as param (param.name)}
+						<label for="p-{param.name}" class:wide={param.kind === 'region'}>
+							<span>{i18n.m.params[param.name]}</span>
 							{#if param.kind === 'region'}
 								<RegionPicker id="p-{param.name}" bind:value={explorer.params[param.name]} />
+								<small>{i18n.m.params.adm4Hint}</small>
 							{:else if param.kind === 'language'}
 								<select id="p-{param.name}" bind:value={explorer.params[param.name]}>
-									<option value="id">Indonesian</option>
-									<option value="en">English</option>
+									<option value="id">{i18n.m.params.langId}</option>
+									<option value="en">{i18n.m.params.langEn}</option>
 								</select>
 							{:else if param.kind === 'alert'}
 								<select id="p-{param.name}" bind:value={explorer.params[param.name]} disabled={!alerts?.length}>
 									{#if alerts === null}
-										<option value="">Loading active warnings…</option>
+										<option value="">{i18n.m.params.alertsLoading}</option>
 									{:else if alerts.length === 0}
-										<option value="">No active warning right now</option>
+										<option value="">{i18n.m.params.alertsNone}</option>
 									{:else}
 										{#each alerts as alert (alert.code)}
-											<option value={alert.code}>{alert.province} · {timeAgo(parseTime(alert.published_at))}</option>
+											<option value={alert.code}>
+												{alert.province}, {timeAgo(parseTime(alert.published_at), i18n.m)}
+											</option>
 										{/each}
 									{/if}
 								</select>
@@ -160,113 +162,130 @@
 									bind:value={explorer.params[param.name]}
 								/>
 							{/if}
-							{#if param.hint}<small>{param.hint}</small>{/if}
 						</label>
 					{/each}
-				</div>
-			{/if}
+			</div>
 
 			<div class="line">
 				<span class="method">GET</span>
 				<code class="url">{decodeURIComponent(path)}</code>
 				<button type="submit" class="btn primary small" disabled={loading || incomplete}>
-					{loading ? 'Running…' : 'Run'}
+					{loading ? i18n.m.common.running : i18n.m.common.run}
 				</button>
 			</div>
 		</form>
 
 		<div class="response" aria-live="polite" aria-busy={loading}>
 			{#if networkError}
-				<p class="problem">{networkError}</p>
+				<p class="problem">{i18n.m.explorer.networkError}</p>
 			{:else if !result}
-				<p class="hint">{incomplete ? 'Fill in the parameter above, then run the request.' : 'Run the request to see the response.'}</p>
+				<p class="hint">
+					{loading ? i18n.m.common.running : incomplete ? i18n.m.explorer.fillIn : i18n.m.explorer.runToSee}
+				</p>
 			{:else}
 				<div class="bar">
 					<div class="tabs" role="tablist">
-						{#each ['preview', 'json', 'headers'] as const as name (name)}
+						{#each TABS as name (name)}
 							<button type="button" role="tab" aria-selected={tab === name} class:on={tab === name} onclick={() => (tab = name)}>
-								{name === 'json' ? 'JSON' : name[0].toUpperCase() + name.slice(1)}
+								{i18n.m.explorer[name]}
 							</button>
 						{/each}
 					</div>
 					<p class="stat mono">
-						<span class="code" class:bad={!result.ok}>{result.status}</span>
-						{result.ms} ms
-						{#if result.headers['cf-cache-status']}· edge {result.headers['cf-cache-status']}{/if}
+						<span class:bad={!result.ok}>{result.status}</span> · {result.ms} ms
+						{#if result.headers['cf-cache-status']}
+							· {fill(i18n.m.explorer.edge, { status: result.headers['cf-cache-status'] })}
+						{/if}
 					</p>
 				</div>
 
 				{#if tab === 'json'}
-					<CodeBlock code={JSON.stringify(result.body, null, 2)} lang="json" title="Response body" maxHeight="460px" />
+					<CodeBlock code={JSON.stringify(result.body, null, 2)} lang="json" title={i18n.m.explorer.responseBody} maxHeight="480px" />
 				{:else if tab === 'headers'}
-					<table class="headers">
-						<tbody>
-							{#each shownHeaders as name (name)}
-								<tr>
-									<th class="mono">{name}</th>
-									<td class="mono">{result.headers[name]}</td>
-									<td class="note">{HEADER_NOTES[name]}</td>
-								</tr>
+					<div class="table-scroll">
+						<table class="table">
+							<tbody>
+								{#each shownHeaders as name (name)}
+									<tr>
+										<td class="mono">{name}</td>
+										<td class="mono">{result.headers[name]}</td>
+										<td>{i18n.m.explorer.headerNotes[name]}</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+					<CodeBlock code={`curl -i "${PUBLIC_ORIGIN}${result.path}"`} lang="bash" title={i18n.m.explorer.reproduce} />
+				{:else if tab === 'code'}
+					<label class="language" for="code-language">
+						<span>{i18n.m.explorer.language}</span>
+						<select id="code-language" bind:value={codeLanguage}>
+							{#each CODE_LANGUAGES as language (language.id)}
+								<option value={language.id}>{language.label}</option>
 							{/each}
-						</tbody>
-					</table>
-					<CodeBlock code={`curl -i "${PUBLIC_ORIGIN}${result.path}"`} lang="bash" title="Reproduce with curl" />
-				{:else}
-				<svelte:boundary>
-				{#if !result.ok}
-					{@const body = result.body as { message?: string; detail?: unknown } | null}
-					<p class="problem">
-						<strong>{result.status}</strong>
-						{body?.message ?? (body?.detail ? 'The request was rejected as invalid.' : 'The request failed.')}
-					</p>
-				{:else if resultEndpoint === 'earthquake-latest'}
-					<QuakeView quakes={[data]} />
-				{:else if resultEndpoint.startsWith('earthquake')}
-					<QuakeView
-						quakes={data}
-						center={resultEndpoint === 'earthquake-nearby'
-							? [Number(explorer.params.lat), Number(explorer.params.lon)]
-							: undefined}
-					/>
-				{:else if resultEndpoint === 'weather'}
-					<ForecastView location={data.location} days={data.forecast} />
-				{:else if resultEndpoint === 'weather-current'}
-					<ForecastView location={data.location} current={data.current} />
-				{:else if resultEndpoint === 'nowcast'}
-					{#if data.length === 0}
-						<p class="hint">No province has an active warning right now.</p>
-					{:else}
-						<ul class="alerts">
-							{#each data as alert (alert.code)}
-								<li>
-									<div>
-										<strong>{alert.province}</strong>
-										<span class="when">{timeAgo(parseTime(alert.published_at))}</span>
-										<p>{alert.description}</p>
-									</div>
-									<button type="button" class="btn small" onclick={() => openInExplorer('nowcast-detail', { alertCode: alert.code })}>
-										Map →
-									</button>
-								</li>
-							{/each}
-						</ul>
-					{/if}
-				{:else if resultEndpoint === 'nowcast-detail'}
-					<WarningView warnings={data.warnings} />
-				{:else if resultEndpoint === 'nowcast-check'}
-					<WarningView
-						warnings={data.warnings}
-						emptyText={`No active warning mentions "${data.location}". That is not a forecast of good weather.`}
+						</select>
+					</label>
+					<CodeBlock
+						code={codeFor(codeLanguage, `${PUBLIC_ORIGIN}${result.path}`)}
+						lang={codeLanguage === 'curl' ? 'bash' : 'text'}
+						title={CODE_LANGUAGES.find((l) => l.id === codeLanguage)?.label}
 					/>
 				{:else}
-					<RegionView regions={data} onopen={openInExplorer} />
-				{/if}
-				{#snippet failed()}
-					<p class="problem">
-						This response could not be previewed. The JSON tab shows exactly what the API returned.
-					</p>
-				{/snippet}
-				</svelte:boundary>
+					<svelte:boundary>
+						{#if !result.ok}
+							{@const body = result.body as { message?: string; detail?: unknown } | null}
+							<p class="problem">
+								<strong class="mono">{result.status}</strong>
+								{body?.message ?? (body?.detail ? i18n.m.explorer.rejected : i18n.m.explorer.failed)}
+							</p>
+						{:else if resultEndpoint === 'earthquake-latest'}
+							<QuakeView quakes={[data]} />
+						{:else if resultEndpoint.startsWith('earthquake')}
+							<QuakeView
+								quakes={data}
+								center={resultEndpoint === 'earthquake-nearby'
+									? [Number(explorer.params.lat), Number(explorer.params.lon)]
+									: undefined}
+							/>
+						{:else if resultEndpoint === 'weather'}
+							<ForecastView location={data.location} days={data.forecast} />
+						{:else if resultEndpoint === 'weather-current'}
+							<ForecastView location={data.location} current={data.current} />
+						{:else if resultEndpoint === 'nowcast'}
+							{#if data.length === 0}
+								<p class="hint">{i18n.m.views.noActive}</p>
+							{:else}
+								<ul class="alerts">
+									{#each data as alert (alert.code)}
+										<li>
+											<div>
+												<strong>{alert.province}</strong>
+												<span class="when">{timeAgo(parseTime(alert.published_at), i18n.m)}</span>
+												<p>{alert.description}</p>
+											</div>
+											<button type="button" class="btn small" onclick={() => openInExplorer('nowcast-detail', { alertCode: alert.code })}>
+												{i18n.m.views.showMap}
+											</button>
+										</li>
+									{/each}
+								</ul>
+							{/if}
+						{:else if resultEndpoint === 'nowcast-warnings'}
+							<WarningView
+								warnings={data.map((entry: ActiveWarningFull) => entry.warning)}
+								emptyText={i18n.m.views.noActive}
+							/>
+						{:else if resultEndpoint === 'nowcast-detail'}
+							<WarningView warnings={data.warnings} />
+						{:else if resultEndpoint === 'nowcast-check'}
+							<WarningView warnings={data.warnings} emptyText={fill(i18n.m.views.noMention, { place: data.location })} />
+						{:else}
+							<RegionView regions={data} onopen={openInExplorer} />
+						{/if}
+						{#snippet failed()}
+							<p class="problem">{i18n.m.explorer.previewFailed}</p>
+						{/snippet}
+					</svelte:boundary>
 				{/if}
 			{/if}
 		</div>
@@ -274,57 +293,10 @@
 </div>
 
 <style>
+	/* The endpoint list lives in the table above; here one select picks the
+	   request, so the response gets the full width of the sheet. */
 	.explorer {
-		display: grid;
-		grid-template-columns: 270px minmax(0, 1fr);
-		overflow: hidden;
-		box-shadow: var(--shadow);
-	}
-
-	.side {
-		padding: 16px 10px;
-		border-right: 1px solid var(--line);
-		background: var(--surface-2);
-		display: grid;
-		gap: 16px;
-		align-content: start;
-	}
-
-	.group {
-		display: grid;
-		gap: 2px;
-	}
-
-	.group .eyebrow {
-		padding: 0 8px 4px;
-	}
-
-	.endpoint {
-		display: grid;
-		gap: 1px;
-		padding: 6px 8px;
-		border: 0;
-		border-radius: 6px;
-		background: none;
-		text-align: left;
-	}
-
-	.endpoint:hover {
-		background: color-mix(in srgb, var(--surface) 70%, transparent);
-	}
-
-	.endpoint.on {
-		background: var(--surface);
-		box-shadow: inset 2px 0 0 var(--accent);
-	}
-
-	.path {
-		font-size: 0.8125rem;
-	}
-
-	.summary {
-		font-size: 0.75rem;
-		color: var(--muted);
+		border: 1px solid var(--ink);
 	}
 
 	.main {
@@ -342,41 +314,46 @@
 
 	.params {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
 		gap: 12px;
+	}
+
+	/* The endpoint and the village search hold long text and get two columns. */
+	.pick,
+	.wide {
+		grid-column: span 2;
 	}
 
 	label {
 		display: grid;
 		gap: 4px;
-		font-size: 0.8125rem;
-		color: var(--muted);
+		align-content: start;
+		font-size: 0.875rem;
 	}
 
 	label :global(input),
 	select {
-		min-height: 38px;
+		min-height: 44px;
 		padding: 0 10px;
-		border: 1px solid var(--line);
-		border-radius: 8px;
-		background: var(--surface);
+		border: 1px solid var(--ink);
+		background: var(--paper);
 		color: var(--ink);
-		font-size: 0.9375rem;
+		font-size: 1rem;
 		width: 100%;
 	}
 
 	small {
-		font-size: 0.75rem;
+		font-size: 0.8125rem;
+		color: var(--ink-2);
 	}
 
 	.line {
 		display: flex;
 		align-items: center;
 		gap: 10px;
-		padding: 8px 8px 8px 12px;
-		border-radius: 8px;
-		background: var(--code-bg);
-		color: var(--code-ink);
+		padding: 4px 4px 4px 12px;
+		border: 1px solid var(--ink);
+		background: var(--tint);
 		min-width: 0;
 	}
 
@@ -386,13 +363,13 @@
 		white-space: nowrap;
 	}
 
-	.line .btn:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
+	.line .btn {
+		min-height: 44px;
+		font-weight: 600;
 	}
 
 	.response {
-		min-height: 260px;
+		min-height: 240px;
 		display: grid;
 		gap: 12px;
 		align-content: start;
@@ -401,92 +378,64 @@
 
 	.bar {
 		display: flex;
-		align-items: center;
+		align-items: flex-end;
 		justify-content: space-between;
-		gap: 12px;
+		gap: 4px 12px;
 		flex-wrap: wrap;
-		border-bottom: 1px solid var(--line);
+		border-bottom: 1px solid var(--ink);
 	}
 
 	.tabs {
 		display: flex;
-		gap: 2px;
+		flex-wrap: wrap;
 	}
 
 	.tabs button {
-		padding: 8px 12px;
-		border: 0;
-		border-bottom: 2px solid transparent;
+		min-height: 44px;
+		padding: 0 14px;
+		border: 1px solid transparent;
+		border-bottom: 0;
 		background: none;
-		color: var(--muted);
-		font-size: 0.875rem;
+		color: var(--ink-2);
 		margin-bottom: -1px;
 	}
 
 	.tabs button.on {
+		border-color: var(--ink);
+		background: var(--paper);
 		color: var(--ink);
-		border-color: var(--accent);
+		font-weight: 600;
 	}
 
 	.stat {
-		font-size: 0.75rem;
-		color: var(--muted);
+		font-size: 0.8125rem;
+		color: var(--ink-2);
+		padding-bottom: 8px;
 	}
 
-	.code {
-		padding: 1px 6px;
-		border-radius: 4px;
-		background: var(--accent-soft);
-		color: var(--accent);
-		margin-right: 4px;
-	}
-
-	.code.bad {
-		background: color-mix(in srgb, var(--quake) 15%, transparent);
-		color: var(--quake);
+	.stat .bad {
+		color: var(--alert);
 	}
 
 	.hint {
-		color: var(--muted);
+		color: var(--ink-2);
 	}
 
 	.problem {
-		padding: 12px 14px;
-		border-radius: 8px;
-		background: color-mix(in srgb, var(--quake) 10%, transparent);
-		color: var(--ink);
+		padding: 10px 12px;
+		border: 1px solid var(--alert);
+		color: var(--alert);
 	}
 
-	.headers {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.8125rem;
-	}
-
-	.headers th,
-	.headers td {
-		text-align: left;
-		padding: 6px 8px;
-		border-bottom: 1px solid var(--line);
-		font-weight: 400;
-		vertical-align: top;
-	}
-
-	.headers th {
-		color: var(--accent);
-		white-space: nowrap;
-	}
-
-	.note {
-		color: var(--muted);
+	.language {
+		max-width: 260px;
 	}
 
 	.alerts {
 		list-style: none;
 		margin: 0;
 		padding: 0;
-		display: grid;
-		max-height: 440px;
+		max-height: 460px;
 		overflow: auto;
 	}
 
@@ -495,33 +444,31 @@
 		align-items: start;
 		justify-content: space-between;
 		gap: 12px;
-		padding: 10px 2px;
-		border-bottom: 1px solid var(--line);
-		font-size: 0.875rem;
+		padding: 10px 0;
+		border-bottom: 1px solid var(--hair);
+		font-size: 0.9375rem;
 	}
 
 	.alerts p {
-		color: var(--muted);
+		color: var(--ink-2);
 		margin-top: 2px;
 	}
 
 	.when {
-		font-size: 0.75rem;
-		color: var(--muted);
+		font-size: 0.8125rem;
+		color: var(--ink-2);
 		margin-left: 6px;
 	}
 
-	@media (max-width: 860px) {
-		.explorer {
-			grid-template-columns: minmax(0, 1fr);
+	@media (max-width: 560px) {
+		.pick,
+		.wide {
+			grid-column: auto;
 		}
 
-		.side {
-			border-right: 0;
-			border-bottom: 1px solid var(--line);
-			grid-auto-flow: column;
-			grid-auto-columns: 220px;
-			overflow-x: auto;
+		/* Keeps the four tabs on one line. */
+		.tabs button {
+			padding: 0 10px;
 		}
 	}
 </style>
