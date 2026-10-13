@@ -1,15 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Background -->
-  <rect width="32" height="32" rx="6" fill="#1e40af"/>
-  
-  <!-- Globe -->
-  <circle cx="16" cy="16" r="11" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
-  <ellipse cx="16" cy="16" rx="11" ry="5.5" fill="none" stroke="#60a5fa" stroke-width="1"/>
-  <line x1="16" y1="5" x2="16" y2="27" stroke="#60a5fa" stroke-width="1"/>
-  <line x1="5" y1="16" x2="27" y2="16" stroke="#60a5fa" stroke-width="1"/>
-  
-  <!-- Seismic Waves -->
-  <circle cx="16" cy="16" r="3" fill="#fbbf24"/>
-  <circle cx="16" cy="16" r="6" fill="none" stroke="#fbbf24" stroke-width="1" opacity="0.7"/>
-  <circle cx="16" cy="16" r="9" fill="none" stroke="#fbbf24" stroke-width="0.8" opacity="0.5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">
+<title>BMKG API</title>
+<style>.fill-alert{fill:#c1121f}.fill-land{fill:#d5e6c3}.fill-sea{fill:#d7ebf6}.stroke-ink{stroke:#111111}.stroke-iso{stroke:#1b4aa0}.stroke-relief{stroke:#8a5a2b}@media (prefers-color-scheme:dark){.fill-alert{fill:#ff5d4f}.fill-land{fill:#35592f}.fill-sea{fill:#173d70}.stroke-ink{stroke:#f1efe7}.stroke-iso{stroke:#a9cdf5}.stroke-relief{stroke:#e0b27a}}</style>
+<g transform="translate(-8.384 -8.384) scale(1.2329)">
+<clipPath id="ms"><rect x="9" y="9" width="54" height="54"/></clipPath>
+<clipPath id="ml"><path d="M9 9H12C18 15 17 24 24 28S33 33 37 41S50 48 63 58V63H9Z"/></clipPath>
+<rect x="9" y="9" width="54" height="54" class="fill-sea"/>
+<g clip-path="url(#ms)" fill="none">
+<g class="stroke-iso"><path d="M52.37 30.00C52.57 31.67 52.11 33.82 51.27 35.35C50.42 36.88 48.83 38.35 47.29 39.16C45.75 39.98 43.67 40.42 42.00 40.25C40.33 40.09 38.56 39.13 37.29 38.16C36.02 37.18 35.20 35.76 34.38 34.40C33.56 33.04 32.72 31.67 32.37 30.00C32.02 28.33 31.63 26.03 32.29 24.40C32.96 22.76 34.72 20.88 36.34 20.19C37.96 19.50 40.33 19.87 42.00 20.25C43.67 20.64 45.00 21.64 46.34 22.49C47.68 23.34 49.05 24.10 50.06 25.35C51.06 26.60 52.17 28.33 52.37 30.00Z" stroke-width="4.8"/><path d="M63.78 30.00C64.20 33.50 63.24 38.03 61.46 41.23C59.68 44.44 56.35 47.53 53.11 49.24C49.87 50.96 45.50 51.89 42.00 51.53C38.50 51.18 34.78 49.18 32.11 47.13C29.44 45.08 27.73 42.09 26.01 39.23C24.29 36.38 22.51 33.50 21.78 30.00C21.05 26.50 20.23 21.67 21.62 18.23C23.01 14.80 26.71 10.86 30.11 9.41C33.51 7.96 38.50 8.73 42.00 9.53C45.50 10.34 48.29 12.44 51.11 14.22C53.93 16.00 56.80 17.60 58.92 20.23C61.03 22.86 63.36 26.50 63.78 30.00Z" stroke-width="4.8"/></g>
+<path d="M9 9H12C18 15 17 24 24 28S33 33 37 41S50 48 63 58V63H9Z" class="fill-land"/>
+<g clip-path="url(#ml)" class="stroke-relief"><path d="M52.37 30.00C52.57 31.67 52.11 33.82 51.27 35.35C50.42 36.88 48.83 38.35 47.29 39.16C45.75 39.98 43.67 40.42 42.00 40.25C40.33 40.09 38.56 39.13 37.29 38.16C36.02 37.18 35.20 35.76 34.38 34.40C33.56 33.04 32.72 31.67 32.37 30.00C32.02 28.33 31.63 26.03 32.29 24.40C32.96 22.76 34.72 20.88 36.34 20.19C37.96 19.50 40.33 19.87 42.00 20.25C43.67 20.64 45.00 21.64 46.34 22.49C47.68 23.34 49.05 24.10 50.06 25.35C51.06 26.60 52.17 28.33 52.37 30.00Z" stroke-width="4.8"/><path d="M63.78 30.00C64.20 33.50 63.24 38.03 61.46 41.23C59.68 44.44 56.35 47.53 53.11 49.24C49.87 50.96 45.50 51.89 42.00 51.53C38.50 51.18 34.78 49.18 32.11 47.13C29.44 45.08 27.73 42.09 26.01 39.23C24.29 36.38 22.51 33.50 21.78 30.00C21.05 26.50 20.23 21.67 21.62 18.23C23.01 14.80 26.71 10.86 30.11 9.41C33.51 7.96 38.50 8.73 42.00 9.53C45.50 10.34 48.29 12.44 51.11 14.22C53.93 16.00 56.80 17.60 58.92 20.23C61.03 22.86 63.36 26.50 63.78 30.00Z" stroke-width="4.8"/></g>
+</g>
+<circle cx="42" cy="30" r="5.2" class="fill-alert"/>
+<rect x="9" y="9" width="54" height="54" fill="none" class="stroke-ink" stroke-width="4.4"/>
+</g>
 </svg>

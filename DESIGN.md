@@ -65,8 +65,25 @@ prakiraan cuaca, peringatan dini) tetap bahasa Indonesia.
 
 ## Logo
 
-Logo yang sudah ada di repo (`web/static/logo.svg`, bola dunia biru dengan
-gelombang seismik), dipakai apa adanya.
+Diganti pada 13 Oktober 2026. Logo adalah satu lembar peta kecil
+(`web/static/logo.svg`):
+
+- Garis tepi hitam dengan empat tanda koordinat yang menunjuk ke satu titik.
+- Garis kontur mengelilingi titik itu. Di atas laut garisnya biru (isobar,
+  cuaca), di atas darat cokelat (relief, guncangan gempa). Satu garis yang sama
+  berganti warna di garis pantai.
+- Titik merah: episentrum atau peringatan aktif. Satu-satunya aksen.
+
+Wordmark: "BMKG" tegak tebal (nama tempat), "API" berlebar tetap (kode). Catatan
+tepi pada lockup memakai batas wilayah Indonesia, 6°LU–11°LS dan 95°BT–141°BT.
+
+Berkas: `logo.svg` (terang), `logo-dark.svg` (untuk latar gelap),
+`logo-mono.svg` (satu tinta), `logo-lockup.svg` dan `logo-lockup-dark.svg`
+(tanda dan wordmark). Favicon memakai gambar tersendiri untuk 16 px: dua kontur,
+tanpa tanda koordinat (`favicon.svg`, mengikuti skema warna browser).
+
+Varian gelap hanya untuk tempat di luar halaman: tab browser, README, pratinjau
+tautan. Situsnya tetap terang.
 
 ## Tema
 

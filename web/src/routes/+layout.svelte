@@ -49,8 +49,8 @@
 <header class="top">
 	<div class="sheet bar">
 		<a class="brand" href={href(i18n.locale, '/')}>
-			<img src="/logo.svg" alt="" width="30" height="30" />
-			BMKG API
+			<img src="/logo.svg" alt="" width="32" height="32" />
+			<span>BMKG <span class="api">API</span></span>
 		</a>
 
 		<nav aria-label={i18n.m.nav.main}>
@@ -151,6 +151,13 @@
 
 	.brand img {
 		display: block;
+	}
+
+	/* As in the lockup: the place name upright and bold, the code in fixed width. */
+	.brand .api {
+		font-family: var(--font-mono);
+		font-weight: 500;
+		font-size: 0.94em;
 	}
 
 	nav {
