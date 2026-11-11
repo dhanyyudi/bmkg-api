@@ -25,6 +25,18 @@ from mcp_server.mcp_instance import mcp
 # Import tool modules to ensure they're registered
 from mcp_server.tools import earthquake, weather, nowcast, region
 
+from starlette.requests import Request
+from starlette.responses import PlainTextResponse
+
+# Nothing on this host is a page: it only speaks MCP. Without this file search
+# engines keep fetching /mcp and report the 4xx answer as an indexing problem.
+ROBOTS_TXT = "User-agent: *\nDisallow: /\n"
+
+
+@mcp.custom_route("/robots.txt", methods=["GET"])
+async def robots_txt(request: Request) -> PlainTextResponse:
+    return PlainTextResponse(ROBOTS_TXT, headers={"Cache-Control": "public, max-age=86400"})
+
 
 def main():
     """Run the MCP HTTP server with streamable HTTP transport."""

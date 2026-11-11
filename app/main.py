@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -164,6 +164,25 @@ app.include_router(nowcast.router)
 app.include_router(earthquake.router)
 app.include_router(weather.router)
 app.include_router(wilayah.router)
+
+# The website is for search engines; the JSON endpoints are not. Without this
+# file crawlers fetch /v1/... and report every response as a page they could
+# not index. Declared here, not in the website build, so it is also served
+# when only the API runs.
+ROBOTS_TXT = """User-agent: *
+Allow: /
+Disallow: /v1/
+Disallow: /health
+Disallow: /ready
+Disallow: /openapi.json
+Disallow: /redoc
+"""
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots_txt():
+    return PlainTextResponse(ROBOTS_TXT, headers={"Cache-Control": "public, max-age=86400"})
+
 
 def _redirect_to(target: str):
     async def redirect():
